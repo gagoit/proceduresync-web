@@ -1,0 +1,44 @@
+= content_for :title do
+  = t("user.setup.title")
+
+#setup_page
+  .container
+    .panel.panel-default.form-container
+      .panel-body
+        .col-md-12.col-xs-12.margin-bottom-5
+          = image_tag "logo.png", width: "100%"
+        %h3.text-center.margin-xl-bottom #{t("user.setup.description")}
+
+        .col-md-12.col-xs-12
+          = form_for(current_user, url: user_path(current_user), html: {class: "login", role: "form", method: :put, :'data-has-setup' => current_user.has_setup.to_s, :'data-remind-me-later' => current_user.remind_mark_as_read_later}) do |f|
+            - unless current_user.has_setup
+              .form-group
+                = f.email_field :home_email, class: "form-control input-lg", placeholder: "Backup Email Address", required: "required"
+              .form-group
+                = f.password_field :password, class: "form-control input-lg", placeholder: "Change Password"
+              .form-group
+                = f.password_field :password_confirmation, class: "form-control input-lg", placeholder: "Verify Password"
+
+            - if current_user.remind_mark_as_read_later.nil? || current_user.remind_mark_as_read_later
+              = f.hidden_field :mark_as_read
+              = f.hidden_field :remind_mark_as_read_later
+
+            %input{type: "hidden", name: "user[prev_action]", value: "setup"}
+            
+            %input#mark_ok.btn.btn-primary.btn-block.btn-lg{type: "submit", value: "OK"}
+
+      #mark_as_read_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+        .modal-dialog
+          .modal-content
+            .modal-body
+              %h3 #{t("user.mark_as_read_modal.title")}
+              %p
+                = t("user.mark_as_read_modal.p_confirm")
+              %p
+                = t("user.mark_as_read_modal.p_desc")
+
+              %button.btn.btn-white.btn-block{"data-dismiss" => "modal", :type => "text", "data-field" => "mark_as_read", "data-value" => "true"} #{t("buttons.mark_as_read")}
+              
+              %button.btn.btn-white.btn-block{"data-dismiss" => "modal", :type => "text", "data-field" => "remind_mark_as_read_later", "data-value" => "true"} #{t("buttons.remind_me_later")}
+
+              %button.btn.btn-white.btn-block{"data-dismiss" => "modal", :type => "text", "data-field" => "mark_as_read", "data-value" => "false"} #{t("buttons.leave_as_is")}

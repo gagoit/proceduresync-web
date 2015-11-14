@@ -1,0 +1,55 @@
+.page-content#permissions_page{:'data-permissions-url' => permissions_path, :'data-update-batch-url' => update_batch_permissions_path}
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} #{t("permission.title")}
+  
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .col-lg-12.col-xs-12.col-md-12.col-sm-12
+        .panel.panel-default
+          .panel-heading
+            %h4 #{t("permission.title")}
+            = t("permission.description")
+
+          .table-responsive
+            %table.table.table-bordered.permission-table
+              %thead
+                %tr
+                  %th
+                  - permissions_list(current_company).each do |key|
+                    %th{class: "permissions #{key}"}
+                      = t("permission.#{key}")
+
+              %tbody.text-center
+                - @permissions.each do |permission|
+                  = render :partial => "permissions/permission_in_table", locals: {permission: permission}
+                
+                / %tr.new-user-type
+                /   %td
+                /     .input-group
+                /       %input.form-control#user_type{:type => "text"}
+                /         %span.input-group-btn
+                /           %button.btn.btn-primary#create_user_type{:type => "button"}
+                /             %i.fa.fa-plus
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   %td
+                /   - unless current_company.is_standard?
+                /     %td
+                /     %td
+
+        %div.panel-action
+          %button.btn.btn-primary.col-xs-6.col-md-2#update_permissions{:type => "submit"} #{t("buttons.submit")}
+          
+          = link_to t("buttons.cancel"), permissions_path, class: "col-xs-2 underline-a text-muted"

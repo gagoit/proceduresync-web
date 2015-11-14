@@ -1,0 +1,7 @@
+Proceduresync.hide_loading();
+AlertMessage.show("<%= @message[:status] %>", "<%= @message[:message]%>");
+$("#img-review img").attr("src", "<%= @message[:image_src]%>");
+$(".company-logo").attr("src", "<%= @message[:image_src]%>");
+<% if @message[:credit_card_number] %>
+	$("#company_credit_card_number").val("<%= @message[:credit_card_number] %>");
+<% end %>

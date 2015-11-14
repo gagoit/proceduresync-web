@@ -1,0 +1,140 @@
+#double_title_confirm{
+  #double_confirm{
+    .container{
+      max-width: 100%;
+      padding: 0;
+    }
+  }
+}
+.left-5{
+  margin-left: 5px;
+}
+
+#users_page, #documents_all_page, #documents_assignment_modal {
+  .help-text {
+    margin-bottom: 15px;
+  }
+}
+
+#documents_all_page {
+  #upload-file-block .panel-body {
+    padding: 15px;
+  }
+
+  #upload_private_doc {
+    margin-left: 10px;
+  }
+}
+
+#document_approval_page {
+  .approve-document-to {
+    padding: 50px 0 0;
+  }
+
+  .actions {
+    padding: 50px 0;
+  }
+}
+
+#document_approval_page, #document_edit_page, #document_new_page {
+  #document_expiry, #document_start_time, #document_effective_time {
+    cursor: auto !important;
+  }
+
+  .panel-action{
+    padding-bottom: 15px;
+  }
+}
+
+/** S3 direct upload **/
+#document_new_page, #documents_all_page, #document_edit_page {
+  #uploads_container {
+    .upload {
+      border: none !important;
+      width: 100% !important;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .upload .progress {
+      border: none !important;
+      margin-bottom: 8px !important;
+
+      .progress-bar-info {
+        height: 100%;
+        background-color: #5bc0de;
+      }
+    }
+  }
+
+  #upload-file-block{
+    .panel-body {
+      display: none;
+    }
+
+    #file-upload-status {
+      color: #5cb85c;
+    }
+  }
+
+  #file-info {
+    font-weight: bold;
+    text-align: center;
+    margin: 5px;
+    padding: 5px;
+    /*padding: 1em 0;
+    margin: 1em 0;*/
+    color: #555;
+    border: 2px dashed #555;
+    border-radius: 7px;
+    cursor: default;
+  }
+
+  #submit_document_btn {
+    margin-right: 7px;
+    margin-top: -7px;
+  }
+}
+
+.pdf-viewer{
+  min-height: 50px;
+  background: #c8c8c8;
+
+  #mark-as-read-area {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    margin: 0px;
+    overflow: hidden;
+    padding: 10px 0 !important;
+    border: none !important;
+  }
+
+  .crocodoc-doc{
+    padding-bottom: 35px;
+  }
+}
+
+#document_view_page {
+  #mark-as-read-area{
+    display: none;
+  }
+
+  #favourite-btn .fa.fa-star {
+    color: #2a6395;
+  }
+
+  #mark-as-read-btn{
+    padding-right: 10px;
+    cursor: pointer;
+    display: none;
+  }
+}
+
+.bootstrap-filestyle {
+  float: right !important;
+  .buttonText {
+    margin-left: 5px;
+  }
+}

@@ -1,0 +1,48 @@
+development:
+  api_key: "20dd52a443839de163672d2c54649cf4"
+  client_id: "cb43b93371d06f72fc2990b00bb8ad3e"
+  lists:
+    all: "03e9dd74803d8f1e1101ea1cebe4106f"
+    company_representative_user: "c8b39a38c28be08af70c3e3086600f35"
+    admin_user: "eaabcba8f150e84d5eede1725b00e7e4"
+    supervisor_user: "a23967ddf5fdb70a5c92b6e7ef2b9f37"
+    document_control_admin_user: "eada910e87bb78047ca4ad63ff1c10a2"
+    document_control_standard_user: "375771ac448e17ce2dbdfa279db7e7f6"
+    approver_user: "a6f5bc1db1e5960638ecc3673c0fa916"
+    standard_user: "139d387ab96bd93106535a73e08dbb9a"
+  unsubscribe_page: "longvuong.createsend.com/t/GenericUnsubscribe"
+  confirmation_success_page: "longvuong.createsend.com/t/Subscribed"
+  confirmed_opt_in: false
+  unsubscribe_setting: "OnlyThisList"
+production:
+  api_key: "a22e236638c263d9c2cf03a7ba4f265c"
+  client_id: "75e9445fabd00e76c5f99416050777b6"
+  lists:
+    all: "3fbf65ccd7418b40d05a3fb3ca4bdfb2"
+    company_representative_user: "d3b5b64d4130bccdbc145a585596d212"
+    admin_user: "ea2f996e6a6cfeea538013642ea76833"
+    supervisor_user: "d1a0533e2e3a7076a214f8c56eb4124a"
+    document_control_admin_user: "8d17df40ebba4f16b2a00ebf9faf4249"
+    document_control_standard_user: "8c9fffd453794bbdc8dbedfa3fb23eb5"
+    approver_user: "6ef71750be3e8ce8f67380db89faa463"
+    standard_user: "96b6deb4d32cb73feb52ad2fb3382b00"
+  unsubscribe_page: "proceduresync.createsend.com/t/GenericUnsubscribe"
+  confirmation_success_page: "proceduresync.createsend.com/t/Subscribed"
+  confirmed_opt_in: false
+  unsubscribe_setting: "OnlyThisList"
+test:
+  api_key: "20dd52a443839de163672d2c54649cf4"
+  client_id: "cb43b93371d06f72fc2990b00bb8ad3e"
+  lists:
+    all: "03e9dd74803d8f1e1101ea1cebe4106f"
+    company_representative_user: "c8b39a38c28be08af70c3e3086600f35"
+    admin_user: "eaabcba8f150e84d5eede1725b00e7e4"
+    supervisor_user: "a23967ddf5fdb70a5c92b6e7ef2b9f37"
+    document_control_admin_user: "eada910e87bb78047ca4ad63ff1c10a2"
+    document_control_standard_user: "375771ac448e17ce2dbdfa279db7e7f6"
+    approver_user: "a6f5bc1db1e5960638ecc3673c0fa916"
+    standard_user: "139d387ab96bd93106535a73e08dbb9a"
+  unsubscribe_page: "longvuong.createsend.com/t/GenericUnsubscribe"
+  confirmation_success_page: "longvuong.createsend.com/t/Subscribed"
+  confirmed_opt_in: false
+  unsubscribe_setting: "OnlyThisList"

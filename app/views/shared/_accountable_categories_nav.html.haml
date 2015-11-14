@@ -1,0 +1,7 @@
+%ul.nav-sub{"data-index" => "1", :style => "display: none;"}
+  - acc_cates = UserService.accountable_categories(current_user, current_company)
+  - acc_cates.each do |cate|
+    %li{:'data-uid' => cate[0]}
+      %a{:href => documents_path(category_id: cate[0], types: "accountable")}
+        %i.fa.fa-fw.fa-caret-right
+        = cate[1]

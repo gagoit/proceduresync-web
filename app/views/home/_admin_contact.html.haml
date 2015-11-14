@@ -1,0 +1,11 @@
+.div{class: "col-lg-#{div_length}"}
+  .panel.panel-default
+    .panel-body
+      %strong #{t("dashboard.admin_contact.#{admin[4]}")}
+      %br/
+      = admin[1]
+      %br/
+      = admin[3]
+      %br/
+      %a{href: "mailto:#{admin[2]}", target: "_top"} #{admin[2]}
+      %p

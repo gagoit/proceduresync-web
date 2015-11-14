@@ -1,0 +1,5 @@
+%option{value: "all", selected: (selected_values.include?("all") rescue false)} #{t("reports.form.categories.options.all")}
+- cates.each do |cate|
+  - next if (cate[0].blank? || cate[1].blank?)
+  %option{value: "#{cate[0]}", selected: (selected_values.include?(cate[0].to_s) rescue false)}
+    = cate[1]

@@ -1,0 +1,116 @@
+.company-areas-table {
+  .table-responsive {
+    overflow-y: hidden;
+  }
+}
+
+.table-organisation{
+  .org-node-header, .org-node {
+    
+    &.visible {
+      visibility: visible;
+    }
+
+    &.not-visible {
+      visibility: hidden;
+      border: none;
+
+      h5 {
+        height: 0;
+      }
+    }
+  }
+
+  .org-node-header {
+    .title {
+      font-weight: bold;
+    }
+  }
+
+  .org-node {
+    h5 {
+      padding: 5px 0;
+    }
+
+    &:first-child span.visible:nth-child(odd) h5 {
+      background-color: #eff3f4;
+    }
+
+    span {
+      &.visible {
+        display: inline;
+      }
+
+      &.not-visible {
+        display: none;
+      }
+    }
+
+    a.edit-name {
+      /*color: gray;*/
+      padding-right: 5px;
+
+      &.has_no_child {
+        text-decoration: none !important;
+      }
+      
+      &:hover {
+        color: black;
+      }
+
+      &.active {
+        font-weight: bold;
+      }
+    }
+
+    .icheckbox_minimal-blue.mixed {
+      background-color: #9adef3;
+    }
+  }
+}
+
+#company_structure_page {
+  #preview_company_structure_btn {
+    cursor: pointer;
+  }
+
+  .table-organisation{
+    .org-node {
+      span.visible:nth-child(odd) h5 {
+        background-color: #eff3f4;
+      }
+    }
+  }
+}
+
+/** Custom checkbox in IE8 **/
+.div-for-checkbox {
+    display: inline-block;
+}
+
+.div-for-checkbox label {
+    cursor: pointer;
+    position: absolute;
+}
+
+.div-for-checkbox label:after {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: alpha(opacity=0);
+    content: '';
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    background: #9adef3;
+
+    top: 3px;
+    left: -12px;
+
+    box-shadow: inset 0px 1px 1px white, 0px 1px 3px rgba(0,0,0,0.5);
+}
+
+
+.div-for-checkbox input[type=checkbox]:checked + label:after {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+    filter: alpha(opacity=100);
+    opacity: 1;
+}

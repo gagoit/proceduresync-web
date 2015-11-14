@@ -1,0 +1,48 @@
+.page-content#documents_all_page{:'data-has-perm' => "#{@can_add_edit_doc || @is_approver || @table[:filter] == 'private'  || @can_bulk_assign_doc}"}
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.title-doc.active
+        %a{:href => documents_path} Documents
+  
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    - if params[:filter] == "private" && !current_user.admin && !current_user.super_help_desk_user
+      = render "upload_document", {is_private: true}
+
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            .row
+              .col-xs-7
+                %h4
+                  = @table[:title]
+                Documents can be sorted by column type or filtered by the Search.
+              .col-xs-5
+                .col-sm-3.panel-action
+                .col-sm-9.panel-action
+                  %select#select-actions.form-control.select2.no-search
+                    %option{value: "action"} Action
+                    - if @can_add_edit_doc
+                      %option{:value => "documents_category"} Documents Category
+                    - if @can_bulk_assign_doc
+                      %option{:value => "documents_assignment"} Documents Assignment
+                      
+                    %option{:value => "download_csv"} Download CSV File
+          .panel-body
+            .table-responsive
+              %table#all_documents.table.table-striped{:width => "100%", "data-filter" => @table[:filter], "data-category_id" => @table[:category_id], "data-search" => @table[:search], "data-types" => params[:types], "data-per-page" => OBJECT_PER_PAGE[:document], "data-order-by-ranking" => "#{@table[:search].blank? ? 'false' : 'true'}"}
+
+  #select_confirm_modal
+    = render "/shared/confirm_modal", modal: {title: "Warning", content: "No document has been chosen", accept_btn: "OK", disaccept_btn: "", accept_dismiss: true}
+  #delete_confirm_modal
+    = render "/shared/confirm_modal", modal: {title: "Warning", content: "Are you sure you want to delete this document?", accept_btn: "OK", disaccept_btn: "Cancel"}
+
+  = render "rename_document"
+  
+  - if @can_add_edit_doc
+    = render "document_category", categories: @categories
+  - if @can_bulk_assign_doc
+    = render "documents_assignment", can_add_edit_doc: @can_add_edit_doc
+

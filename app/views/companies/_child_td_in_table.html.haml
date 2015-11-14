@@ -1,0 +1,13 @@
+- childs.each do |child|
+  %span.text-muted.visible{:'data-uid' => child[:id] }
+    %h5
+      %a.edit-name
+        = child[:name]
+      %i.fa.fa-pencil-square-o.hidden
+      %i.fa.fa-trash-o.hidden
+                            
+%div.input-group.add-org-node{:'data-uid' => parent.id.to_s}
+  %input#name.form-control{type: "text"}
+    %span.input-group-btn
+      %button.btn.btn-primary{type: "button"}
+        %i.fa.fa-plus

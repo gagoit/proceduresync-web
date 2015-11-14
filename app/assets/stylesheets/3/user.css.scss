@@ -1,0 +1,41 @@
+/** Setup Page **/
+#login_page {
+  #terms_and_conditions {
+    .btn-block {
+        white-space: pre-wrap; /* css-3 */    
+        white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+        white-space: -pre-wrap; /* Opera 4-6 */    
+        white-space: -o-pre-wrap; /* Opera 7 */    
+        word-wrap: break-word; /* Internet Explorer 5.5+ */
+    }
+
+    .panel {
+      margin-bottom: 0;
+    }
+
+    .modal-body {
+      padding-top: 15px;
+      padding-bottom: 15px;
+    }
+  }
+}
+
+form {
+  #error_explanation {
+    
+  }
+  
+  .field_with_errors {
+    input {
+      border-color: #c23527;
+    }
+  }
+}
+
+#user_edit_page {
+  #available_permissions {
+    input.icheck {
+      margin-top: -12px;
+    }
+  }
+}

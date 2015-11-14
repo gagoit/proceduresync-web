@@ -1,0 +1,14 @@
+- visible_panel_metric_items = visible_panel_metrics({admin_contact: {show: true, length: 4 } })
+.page-content#administrator_contact_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} Administrator Contact
+
+  = render :partial => "shared/messages"
+  
+  .container-fluid-md
+    .row.no-padding.no-margin
+      - visible_panel_metric_items.each do |row_items|
+        - row_items.each do |item|
+          = render partial: item[:partial], locals: (item[:locals] || {})

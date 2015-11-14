@@ -1,0 +1,128 @@
+- cates = current_company.documents.pluck(:category_id, :category_name).uniq
+- users = current_company.users.where(:id.in => ReportService.report_user_ids(current_user, current_company)).pluck(:id, :name)
+- u_comp = current_user.user_company(current_company)
+- can_add_edit_doc = PermissionService.can_add_edit_document(current_user, current_company, u_comp)
+.page-content#reports_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} #{t("reports.title")}
+
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .col-lg-6
+        .panel.panel-default
+          .panel-heading
+            %h4 #{t("reports.title")}
+            = t("reports.description")
+          .panel-body.report
+            %form#view_report{:'data-url' => view_reports_path(format: :csv)}
+              - if can_add_edit_doc
+                = render "areas_options", {selected_value: ReportSetting::SELECT_USERS_TEXT, field_name: "report[areas]", field_id: "report_areas"}
+
+              .form-group
+                %label.control-label{for: "report_users"} 
+                  %strong #{t("reports.form.users.title")}
+                %select.form-control.select2#report_users{name: "report[users][]", multiple: true}
+                  = render "users_options", {selected_values: ["all"], u_comp: u_comp, users: users}
+
+              .form-group
+                %label.control-label{for: "report_doc_status"} 
+                  %strong #{t("reports.form.doc_status.title")}
+                %select.form-control.select2.no-search#report_doc_status{name: "report[doc_status]"}
+                  - t("reports.form.doc_status.options").each do |key, value|
+                    %option{value: "#{key}"}
+                      = value
+
+              .form-group
+                %label.control-label{for: "report_categories"} 
+                  %strong #{t("reports.form.categories.title")}
+                %select.form-control.select2#report_categories{name: "report[categories][]", multiple: true}
+                  = render "categories_options", {cates: cates, selected_values: ["all"]}
+
+              %button.btn.btn-primary#view_report_btn #{t("reports.submit_btn")}
+
+        // Reports: In a separate box under Reports, can you please put this "Accountability Report" "Download a CSV file of Accountable Documents for a part of the organisation". The field will have the organisation area pop-up. Will have a Download CSV button. File name will be {organisation area} {timestamp}.csv. Will have the same information as downloading the documents CSV.
+        .panel.panel-default
+          .panel-heading
+            %h4 #{t("accountability_report.title")}
+            = t("accountability_report.description")
+          .panel-body.report-setting
+            %form#accountability_report{:'data-url' => view_accountable_report_reports_path(format: :csv)}
+              .form-group
+                %label.control-label
+                  %strong #{t("accountability_report.form.areas.title")}
+                = select_tag "areas", options_for_select(ReportService.company_paths_for_accountability_report(current_user, current_company)), class: "form-control select2 form-chosen", name: "accountability_report[areas]", id: "accountability_report_areas"
+
+              / %input#belongs_to_paths{type: "hidden", name: "accountability_report[belongs_to_paths]"}
+              %input#accountability_report_areas_name{type: "hidden", name: "accountability_report[areas_name]"}
+
+              %button.btn.btn-primary#view_accountability_report_btn #{t("reports.submit_btn")}
+
+
+        - if PermissionService.has_perm_see_supervisors_approvers(current_user, current_company)
+          // For Admin and Super Admin users, the ability to select a section within the organisation and download a report that shows “active” users who supervisor for or approve for that section.  The CSV  would have “Name”, “Email”, “Supervise For” & “Approve For”.
+          .panel.panel-default
+            .panel-heading
+              %h4 #{t("supervisors_approvers_report.title")}
+              = t("supervisors_approvers_report.description")
+            .panel-body.report-setting
+              %form#supervisors_approvers_report{:'data-url' => view_supervisors_approvers_report_reports_path(format: :csv)}
+                .form-group
+                  %label.control-label
+                    %strong #{t("supervisors_approvers_report.form.areas.title")}
+                  = select_tag "areas", options_for_select(ReportService.company_paths_for_accountability_report(current_user, current_company)), class: "form-control select2 form-chosen", name: "supervisors_approvers_report[areas]", id: "supervisors_approvers_report_areas"
+
+                / %input#belongs_to_paths{type: "hidden", name: "supervisors_approvers_report[belongs_to_paths]"}
+                %input#supervisors_approvers_report_areas_name{type: "hidden", name: "supervisors_approvers_report[areas_name]"}
+
+                %button.btn.btn-primary#view_supervisors_approvers_report_btn #{t("reports.submit_btn")}
+
+
+      - if @report_setting
+        .col-lg-6
+          .panel.panel-default
+            .panel-heading
+              %h4 #{t("report_setting.title")}
+              = t("report_setting.description")
+            .panel-body.report-setting
+              %form#edit_report_setting{:'data-url' => update_setting_reports_path(format: :json)}
+                .form-group
+                  %label
+                    %input#report_setting_automatic_email{type: "checkbox", class: "icheck square-blue", checked: (@report_setting.automatic_email.blank? ? false : true), name: "report_setting[automatic_email]"}
+                    %label.control-label #{t("report_setting.form.automatic_email")}
+                  
+                .form-group
+                  %label.control-label{:for => "report_setting_frequency"} 
+                    %strong #{t("report_setting.form.frequency.title")}
+                  %select.form-control.select2.no-search#report_setting_frequency{name: "report_setting[frequency]"}
+                    - t("report_setting.form.frequency.options").each do |key, value|
+                      %option{value: "#{key}", selected: (key.to_s == @report_setting.frequency)}
+                        = value
+
+                - if can_add_edit_doc
+                  = render "areas_options", {selected_value: @report_setting.areas, field_name: "report_setting[areas]", field_id: "report_setting_areas"}
+
+                .form-group
+                  %label.control-label{for: "report_setting_users"} 
+                    %strong #{t("reports.form.users.title")}
+                  %select.form-control.select2#report_setting_users{name: "report_setting[users][]", multiple: true}
+                    = render "users_options", {selected_values: @report_setting.users, u_comp: u_comp, users: users}
+
+                .form-group
+                  %label.control-label{for: "report_setting_doc_status"} 
+                    %strong #{t("reports.form.doc_status.title")}
+                  %select.form-control.select2.no-search#report_setting_doc_status{name: "report_setting[doc_status]"}
+                    - t("reports.form.doc_status.options").each do |key, value|
+                      %option{value: "#{key}", selected: (key.to_s == @report_setting.doc_status)}
+                        = value
+
+                .form-group
+                  %label.control-label{for: "report_setting_categories"} 
+                    %strong #{t("reports.form.categories.title")}
+                  %select.form-control.select2#report_setting_categories{name: "report_setting[categories][]", multiple: true}
+                    = render "categories_options", {cates: cates, selected_values: @report_setting.categories}
+
+                %button.btn.btn-primary#update_report_setting_btn #{t("buttons.submit")}

@@ -1,0 +1,28 @@
+#edit_category_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+  .modal-dialog.resized-1
+    .modal-content
+      .modal-header
+        %h3 #{t("document.edit_category.title")}
+        = t("document.edit_category.description")
+      .modal-body
+        #term_conditions
+          .container
+            .panel-default
+              .panel-body.panel-e
+                #modal-alert-msg
+                = form_tag(edit_category_documents_path, role: "form", method: :post, id: "edit_category_form") do
+                  .form-group
+                    %label.control-label.bold{for: "category_id"}
+                      = t("document.edit_category.form.category.title")
+                    = render "select_categories", {current_cate_id: nil, can_add_edit_doc: true, categories: categories, field_id: "category_id", field_name: "category[id]"}
+
+                  .form-group
+                    %label.control-label.bold{for: "category_name"} 
+                      = t("document.edit_category.form.name.title")
+                    .controls
+                      %input.form-control#category_name{:name => "category[name]", :placeholder => t("document.edit_category.form.name.placeholder"), type: "text", required: true}
+
+                  .text-center
+                    %button.btn.btn-primary.btn-submit-modal#submit_edit_category{:type => "submit"} #{t("buttons.submit")}
+                    %a.underline-a-modal.text-muted{"data-dismiss" => "modal", :href => "javascript:;"}
+                      %h5 #{t("buttons.cancel")}

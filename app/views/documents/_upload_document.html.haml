@@ -1,0 +1,37 @@
+.row#upload-file-block
+  .col-lg-12
+    .panel.panel-default
+      .panel-heading
+        - if is_private
+          = form_tag(create_private_document_documents_path, format: :js, mutipart: true, remote: true, role: "form", id: "create_private_document", :'data-doc-settings' => current_company.document_settings.join(",")) do
+            %input{id: "document_title", name:"document[title]", type: "hidden"}
+            %input{id: "document_doc_id", name:"document[doc_id]", type: "hidden"}
+            %input{:type => "hidden", name: "version[file_url]", value: "", id: "document_version_file_url"}
+            %input{:type => "hidden", name: "version[file_name]", value: "", id: "document_version_file_name"}
+            %input{:type => "hidden", name: "version[file_size]", value: "", id: "document_version_file_size"}
+            %input{:type => "hidden", name: "document[private_for_id]", value: current_user.id.to_s}
+            %input{:type => "hidden", name: "document[is_private]", value: true}
+
+            //%button.btn.btn-primary.pull-right{:type => "submit", id: "upload_private_doc"} Upload
+
+        %input#fileselect_tmp.filestyle.pull-right{:multiple => false, :name => "file1", :type => "file"}
+
+        = s3_uploader_form callback_url: "", id: "document-file-s3-uploader" do
+          %input#fileselect.pull-right{:multiple => false, :name => "file", :type => "file", :style => "display: none;"}
+
+          %script#template-upload{:type => "text/x-tmpl"}
+            .upload{:id => "file-{%=o.unique_id%}"}
+              .progress
+                .bar.progress-bar-info{:style => "width: 0%"}
+
+        %h4 Upload Document
+        Only one document can be uploaded. Only accepts Word, Excel, Power Point and PDF files.
+        
+      .panel-body{style: "display: none;"}
+        .well.text-center
+          %dropzone#upload-document-zone
+            #file-info
+              %h2#file-name
+              %h2#tip-text Drag the document from your computer to here.
+              %h4#file-upload-status
+              %div#uploads_container

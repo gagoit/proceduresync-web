@@ -1,0 +1,5 @@
+= rails_admin_form_for @object, :url => disabled_path(@abstract_model, @object.id), :as => @abstract_model.param_key, :html => { :method => "put", :class => "form-horizontal denser", :data => { :title => @page_name } } do |form|
+  
+  .form-actions
+    %input.btn.btn-primary{type: :submit, value: 'Disabled', 'data-disable-with' => 'Disabled', name: 'disabled'}
+      

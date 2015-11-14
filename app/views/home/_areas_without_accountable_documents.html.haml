@@ -1,0 +1,18 @@
+- areas_has_no_accountable_docs = UserService.areas_without_accountable_documents(current_user, current_company)
+- if areas_has_no_accountable_docs.length > 0
+  - all_paths = current_company.all_paths_hash
+  .col-lg-12.dashboard-panel
+    .panel.panel-default.areas-has-no-accountable-docs
+      .panel-heading
+        %h4 Areas without Accountable Documents 
+      .table-responsive
+        %table.table.table-bordered
+          %tbody
+            %tr
+              %td
+                .list-group.margin-sm
+                  - areas_has_no_accountable_docs.each do |path|
+                    %a.list-group-item.has-no-perm{:href => "javascript:;"}
+                      %i.fa.fa-warning.pull-left.large-icon
+                      %h5.list-group-item-heading #{all_paths[path]}
+                  

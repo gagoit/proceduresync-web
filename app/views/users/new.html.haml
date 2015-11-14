@@ -1,0 +1,66 @@
+.page-content#user_edit_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li
+        %a{:href => users_path} #{t("user.index.title")}
+      %li.active
+        %a{:href => "javascript:;"} #{t("user.new.title")}
+
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row.no-gutter
+      .col-lg-6
+        .panel.panel-default
+          .panel-heading
+            %h4 
+              = @user.name
+
+              %a.pull-right.help-icon{:href => t("help_links.add_user.title"), target: "_blank", "title" => t("help_links.add_user.tooltip"), "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                %i.fa.fa-info-circle
+
+            \&nbsp
+          .panel-body
+            = form_for(@user, url: users_path(format: :json), html: {class: "login", role: "form", method: :post, id: "edit_user"}) do |f|
+              .form-group
+                %label
+                  = f.check_box :active , class: "icheck square-blue"
+                  = f.label :active, class: "control-label"
+              
+              .form-group
+                = f.label :name, class: "control-label bold"
+                .controls
+                  = f.text_field :name, class: "form-control", placeholder: "Name", required: "required"
+                  
+              .form-group
+                = f.label :email, class: "control-label bold"
+                .controls
+                  = f.email_field :email, class: "form-control", placeholder: "Email@example.com", required: "required"
+
+              .form-group
+                %label.control-label
+                  %strong #{t("user.form.belongs_to.title")}
+                = select_tag "company_path_ids", options_for_select(company_paths_for_select(current_user, current_company)), class: "form-control select2", placeholder: t("user.form.belongs_to.placeholder"), name: "user[company_path_ids]", id: "user_company_path_ids"
+
+              .form-group#permission-group
+                %label.control-label
+                  %strong #{t("user.form.permission.title")}
+                = select_tag "permission_id", options_for_select(standard_permissions_for_select(current_user, current_company), current_company.permission_standard.try(:id)), class: "form-control select2", name: "user[permission_id]", id: "user_permission_id", "data-approver-code" => Permission::STANDARD_PERMISSIONS[:approver_user][:code], "data-supervisor-code" => Permission::STANDARD_PERMISSIONS[:supervisor_user][:code]
+              
+              = render :partial => "users/approver_supervisor", locals: {u_comp: nil, is_showed: false}
+
+              - if has_perm_show_admin_detail(current_user, current_company)
+                .form-group
+                  = f.label :phone, class: "control-label bold"
+                  .controls
+                    = f.text_field :phone, class: "form-control", placeholder: "Phone", type: "text"
+
+              %input{id: "user_confirm_overwrite",name: "user[confirm_overwrite]", type: "hidden", value: "true"}
+
+              %div
+                %input#update_user.btn.btn-primary.col-xs-3{type: "submit", value: "Submit"}
+                = link_to(new_user_path, class: "col-xs-2 underline-a text-muted") do
+                  %h5 #{t("buttons.cancel")}
+
+      .col-lg-6.right-site
+        = render :partial => "custom_permissions", locals: {is_visiable: true, current_perm: (current_company.standard_permissions.first || {}), u_comp: nil, is_custom_perm: true}

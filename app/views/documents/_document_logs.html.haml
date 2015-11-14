@@ -1,0 +1,7 @@
+.panel.panel-default
+  .panel-heading
+    %h4 Logs
+    Changes made to this document.
+  .panel-body
+    .table-responsive
+      %table#table-document-logs.table.table-striped{:'data-url' => logs_document_path(document), :'data-per-page' => PER_PAGE}

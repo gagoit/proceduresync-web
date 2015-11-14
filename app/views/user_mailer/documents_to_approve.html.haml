@@ -1,0 +1,23 @@
+%p Dear #{@user.first_name},
+
+%p These new documents have been added by the #{@comp.name} document control team:
+%ol
+  - @docs_title.each do |doc_title|
+    %li #{doc_title}
+
+%p As an Approver user you are required to take the following action:
+
+%ul
+  %li Log into the web portal at #{link_to "www.proceduresync.com", "www.proceduresync.com"} (the login is at the top right of the page)
+  %li Click on the “Unread” documents folder
+  %li Read the document and determine if your section(s) are “Accountable” for the document.
+
+%p Select “Yes” to assign accountability or “No” to not assign the document as “accountable”. You can find more about the role of an Approval User by visiting the support section at #{link_to "www.proceduresync.com", "www.proceduresync.com"} and searching for “Approval User”.
+
+%p If you believe you have been made an Approver user by mistake please notify your Administration or lodge a support ticket with us.
+
+%p Kind regards,
+
+%p The Proceduresync Team
+
+%p This email (including all attachments) are the sole property of Proceduresync Pty Ltd and may be confidential. If you are not the intended recipient, you must not use or forward the information contained in it. This message may not be reproduced or otherwise republished without the written consent of the sender. If you have received this message in error, please delete the e-mail and notify and sender.

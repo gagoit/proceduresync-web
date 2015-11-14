@@ -1,0 +1,18 @@
+.panel.panel-default#custom_permissions
+  .panel-heading
+    %h4 
+      #{t("user.custom_permissions.title")}
+      
+      %a.pull-right.help-icon{:href => t("help_links.permission_meaning.title"), target: "_blank", "title" => t("help_links.permission_meaning.tooltip"), "data-placement" => "bottom", "data-toggle" => "tooltip"}
+        %i.fa.fa-info-circle
+
+    = t("user.custom_permissions.description")
+
+  .panel-body
+    .form-group
+      %label.control-label
+        %strong #{t("user.custom_permissions.user_type.title")}
+      = select_tag "user_type", options_for_select(standard_user_types_for_select(current_company), u_comp.try(:user_type)), class: "form-control select2 no-search", placeholder: t("user.custom_permissions.user_type.placeholder"), name: "user[user_type]", id: "user_user_type", "data-url" => load_permsions_for_user_type_users_path
+
+    .table-responsive#available_permissions
+      = render :partial => "users/available_permissions", locals: {current_perm: current_perm, is_custom_perm: is_custom_perm}

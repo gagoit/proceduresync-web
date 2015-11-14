@@ -1,0 +1,8 @@
+.panel.panel-default#user_logs
+  .panel-heading
+    %h4 #{t("logs.title")}
+    = t("user.logs.description")
+    
+  .panel-body
+    .table-responsive
+      %table#table-user-logs.table.table-striped{:'data-url' => logs_user_path(@user), :'data-per-page' => PER_PAGE}

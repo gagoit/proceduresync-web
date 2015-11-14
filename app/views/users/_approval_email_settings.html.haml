@@ -1,0 +1,17 @@
+- u_comp = @user.user_company(current_company, true)
+- if !current_company.is_standard? && @user.id == current_user.id && u_comp && u_comp["is_approver"]
+  .panel.panel-default
+    .panel-heading
+      %h4 #{t("user.approval_email_settings.title")}
+
+    .panel-body
+      = form_for(@user, url: approval_email_settings_user_path(@user, format: :json), html: {class: "login", role: "form", method: :post, id: "approval_email_settings"}) do |f|
+
+        .form-group
+          %select.form-control.select2.no-search#email_settings{name: "email_settings", "data-placeholder" => t("document.form.category.placeholder"), required: true}
+            - UserCompany::APPROVAL_EMAIL_SETTINGS.values.each do |option|
+              %option{value: option, selected: option == u_comp["approval_email_settings"] ? true : false}
+                = t("user.approval_email_settings.options.#{option}")
+
+        %div
+          %input#update_email_settings.btn.btn-primary.col-xs-3{type: "submit", value: "Submit"}

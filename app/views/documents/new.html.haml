@@ -1,0 +1,25 @@
+.page-content#document_new_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.title-doc
+        %a{:href => documents_path} Documents
+      %li.active
+        %a{:href => "javascript:void(0);"} New
+  
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    = render "upload_document", {is_private: false}
+  
+  = form_for(@document, format: :js, mutipart: true, remote: true,  html: {role: "form", :'data-doc-settings' => current_company.document_settings.join(",")}) do |form|
+    .container-fluid-md
+      .row
+        .col-lg-6
+          = render "document_attributes", f: form, submit_text: "Submit"
+          / = render "document_versions"
+        .col-lg-6
+          = render "document_permissions", document: form.object, can_add_edit_doc: true
+          / = render "document_logs"
+
+  = render "double_confirm_modal"
+  = render "edit_category", categories: current_company.categories

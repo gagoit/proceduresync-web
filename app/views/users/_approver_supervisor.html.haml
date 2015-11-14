@@ -1,0 +1,26 @@
+- unless current_company.is_standard?
+  .form-group#approver-section{class: u_comp.try(:is_approver) ? "" : "hidden", :'data-load-table-url' => load_company_structure_table_company_path(current_company, user_id: u_comp.try(:user_id), table_id: "table-org-for-approver", expanded: true)}
+    %label.control-label
+      %strong #{t("user.form.approver.title")}
+      %br
+      = t("user.form.approver.description")
+
+    / %a.pull-right.help-icon{:href => "javascript:;"}
+    /   %i.fa.fa-info-circle
+
+    %input{name: "user[approver_paths]", id: "user_approver_paths", value: (u_comp.try(:approver_path_ids) || []), type: "hidden"}
+    
+    .company-areas-table
+
+.form-group#supervisor-section{class: u_comp.try(:is_supervisor) ? "" : "hidden", :'data-load-table-url' => load_company_structure_table_company_path(current_company, user_id: u_comp.try(:user_id), table_id: "table-org-for-supervisor", expanded: true)}
+  %label.control-label
+    %strong #{t("user.form.supervisor.title")}
+    %br
+    = t("user.form.supervisor.description")
+
+  / %a.pull-right.help-icon{:href => "javascript:;"}
+  /   %i.fa.fa-info-circle
+
+  %input{name: "user[supervisor_paths]", id: "user_supervisor_paths", value: (u_comp.try(:supervisor_path_ids) || []), type: "hidden"}
+  
+  .company-areas-table

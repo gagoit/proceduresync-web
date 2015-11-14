@@ -1,0 +1,9 @@
+- unless permission.new_record?
+  %tr.user-type{:'data-uid' => permission.id}
+    %th
+      #{permission.full_name}
+
+    - permissions_list(current_company).each do |key|
+      %td{:'data-key' => key}
+        %label
+          %input.icheck.square-blue{:type => "checkbox", checked: permission[key]}

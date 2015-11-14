@@ -1,0 +1,29 @@
+- dashboard_items = items_on_dashboard(current_user, current_company)
+- visible_panel_metric_items = visible_panel_metrics(dashboard_items)
+.page-content#dashboard_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} Dashboard
+
+  = render :partial => "shared/messages"
+  
+  .container-fluid-md
+    .row
+      .col-lg-6.left-column
+        - visible_panel_metric_items.each do |row_items|
+          .row.no-padding.no-margin
+            - row_items.each do |item|
+              = render partial: item[:partial], locals: (item[:locals] || {})
+
+        .row.no-padding.no-margin
+          - [:unread_documents, :documents_to_approve].each do |key|
+            - next unless dashboard_items[key] && dashboard_items[key][:show]
+            = render "home/#{key.to_s}"
+      
+      .col-lg-6.right-column
+        - [:admin_attention, :staff_with_outstanding_documents, :areas_without_accountable_documents].each do |key|
+          - next unless dashboard_items[key] && dashboard_items[key][:show]
+          = render "home/#{key.to_s}"
+
+      

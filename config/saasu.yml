@@ -1,0 +1,22 @@
+##
+# Saasu config: 
+#   wsaccesskey
+#   fileid
+##
+development:
+  wsaccesskey: '51C7107C4B58493B86D005446ADA23D1'
+  fileid: '56809'
+  item_id: 3296363
+  bank_account_id: 2115903
+
+production:
+  wsaccesskey: '4E35E0C3F09E40D1B4B7AA2E85D26AC2'
+  fileid: '45132'
+  item_id: 3296678
+  bank_account_id: 1647749
+
+test:
+  wsaccesskey: '51C7107C4B58493B86D005446ADA23D1'
+  fileid: '56809'
+  item_id: 3296363
+  bank_account_id: 2115903

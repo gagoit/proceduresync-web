@@ -1,0 +1,116 @@
+table h5{
+  margin-bottom: 0px !important;
+}
+table a.list-group-item{
+  padding: 10px 10px 5px 10px;
+}
+
+table .checkbox{
+  margin: 0;
+}
+table.custom-table td{
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+}
+
+.table.permission-table, .table.table-organisation{
+  table-layout: fixed;
+}
+
+.table.table-organisation{ 
+  border: none !important;
+}
+
+.table-organisation>tbody>tr>th, .table-organisation>tbody>tr>td{
+  width: 20%;
+  word-wrap: break-word;
+  white-space: normal;
+  padding: 5px;
+}
+
+.table-organisation>tbody>tr>td>div.input-group{
+  padding-top: 20px;
+}
+
+.table.permission-table>thead>tr>th{
+  vertical-align: top;
+  width: 110px;
+  word-wrap: break-word;
+  white-space: normal;
+  text-align: center;
+}
+.table.permission-table>thead>tr:first-child>th{
+  width: 150px;
+}
+.table.permission-table>tbody>tr>th>small{
+  word-wrap: break-word;
+  white-space: normal;
+}
+.table-responsive, .scroll-panel{
+  overflow: auto;
+}
+
+.table-organisation>tbody>tr>td>span{
+  /** text-decoration: underline; */
+  cursor: pointer;
+}
+.table-organisation>tbody>tr>td>span>h5>a{
+  color: black;
+}
+.text-nomal{
+  color: black;
+}
+table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc, table.dataTable thead .sorting {
+  cursor: pointer;
+}
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+  /*vertical-align: middle;*/
+}
+
+/** Custome DataTable **/
+table.dataTable {
+  tr.child > td.child {
+    table td {
+      border-top: none !important;
+      border-bottom: none !important;
+      padding-left: 0 !important;
+
+      .panel {
+        box-shadow: none;
+      }
+    }
+  }
+
+  tr.child ul {
+    width: 100%;
+  }
+
+  &.collapsed {
+    th:first-child > div[class^="icheckbox"]{
+      margin-left: 20px;
+    }
+  }
+}
+
+.table-responsive {
+  .table-bordered {
+    border-width: 1px 1px 1px 1px !important;
+  }
+}
+
+.table-striped > tbody > tr.odd > td,
+.table-striped > tbody > tr.odd > th {
+  background-color: #eff3f4; 
+}
+
+.table-hover > tbody > tr:hover > td,
+.table-hover > tbody > tr:hover > th {
+  background-color: #eff3f4; 
+}
+
+/** Table show areas **/
+.table-areas{
+  tbody > tr > td {
+    padding: 5px 12px;
+  }
+}

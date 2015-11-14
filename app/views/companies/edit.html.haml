@@ -1,0 +1,103 @@
+.page-content#company_info_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:void(0);"} Company Info
+  
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .col-lg-6
+        .panel.panel-default
+          .panel-heading
+            %h4 Company Billing Address
+          .panel-body.company-address
+            = form_for(current_company, url: company_path(current_company), format: :js, mutipart: true, remote: true,  html: {id: "edit-company-billing", class: "login", role: "form", method: :put, encoding: "multipart/form-data", enctype: "multipart/form-data"}) do |f|
+              .row
+                .col-lg-8.col-sm-8.col-md-8.col-xs-8
+                  .form-group
+                    %label.control-label{:for => "company_name"} Company Name
+                    .controls
+                      = f.text_field :name, class: "form-control", placeholder: "Company Name", required: true
+                  .form-group
+                    %label.control-label{:for => "company_address"} Company Billing Address
+                    .controls
+                      = f.text_field :address, class: "form-control", placeholder: "Company Billing Address", required: true
+                  .form-group
+                    %label.control-label{:for => "company_suburb_city"} Suburb / City
+                    .controls
+                      = f.text_field :suburb_city, class: "form-control", placeholder: "Suburb / City", required: true
+                  .form-group
+                    %label.control-label{:for => "company_state_district"} State / District
+                    .controls
+                      = f.text_field :state_district, class: "form-control", placeholder: "State / District"
+                  .form-group
+                    %label.control-label Country
+                    %select.form-control#select_country{name: "company[country]"}
+                      = country_options(current_company.country)
+
+                  .form-group
+                    %label.control-label{:for => "company_phone"} Phone
+                    .controls
+                      = f.text_field :phone, class: "form-control", placeholder: "Phone", required: true, type: "number"
+                  .form-group
+                    %label.control-label{:for => "company_fax"} Fax Number
+                    .controls
+                      = f.text_field :fax, class: "form-control", placeholder: "Fax Number"
+                  .form-group{class: "#{'hidden' if current_company.country != 'Australia'}", id: "group_abn_acn"}
+                    %label.control-label{:for => "company_abn_acn"} ABN / ACN
+                    .controls
+                      = f.text_field :abn_acn, class: "form-control", placeholder: "ABN / ACN", required: true
+                  .form-group
+                    %label.control-label{:for => "company_invoice_email"}
+                      Invoice Email Address
+                      (Leave blank if you do not require Invoices via email)
+                    .controls
+                      = f.email_field :invoice_email, class: "form-control", placeholder: "accounts@company.com", type: "email"
+
+                  %div
+                    %button.btn.btn-primary.col-xs-6#save-upload-img{:type => "submit"} Update
+                    = link_to(edit_company_path(current_company), class: "col-xs-4 underline-a text-muted") do
+                      %h5 Cancel
+
+                .col-lg-4.col-sm-4.col-md-4.col-xs-4
+                  .form-group.text-center
+                    %label.control-label
+                    .controls
+                      = f.file_field :logo, class: "hidden", id: "file-type", size: 4, accept: "image/*"
+                      %button#upload-logo-btn.btn.btn-default.upload-logo{:type => "button"} Upload Logo
+                      %br
+                        %label.text-center.font-9.fit-area Logos are resized and cropped to 300 x 28 pixels.
+                      #img-review
+                        = image_tag current_company.logo
+
+        = render "companies/invoices"
+        
+      .col-lg-6
+        .panel.panel-default
+          .panel-heading
+            %h4 Credit Card Details
+          .panel-body.company-credit
+            = form_for(current_company, url: company_path(current_company), format: :js, mutipart: true, remote: true, html: {id: "edit-company-creditcard", class: "login", role: "form", method: :put}) do |f|
+              .form-group.col-xs-10
+                %label.control-label{:for => "company_credit_card_number"} Credit Card Number
+                .controls
+                  = f.text_field :credit_card_number, class: "form-control", placeholder: "Credit Card Number", type: "creditcard", required: true
+              .form-group.col-xs-10
+                %label.control-label{:for => "company_name_on_card"} Name on Card
+                .controls
+                  = f.text_field :name_on_card, class: "form-control", placeholder: "Name on Card", required: true
+              .form-group.col-xs-10
+                %label.control-label Expiry
+                .controls
+                  = f.text_field :card_expiry, class: "form-control", placeholder: "MM/YYYY", required: true
+              
+              .form-group.col-xs-10
+                %label.control-label{:for => "company_card_ccv"} CCV
+                .controls
+                  = f.text_field :card_ccv, class: "form-control", placeholder: "ex. 311", required: true, minLength: 3, maxLength: 4
+              .col-xs-12
+                %button.btn.btn-primary.col-xs-5{:type => "submit"} Update
+                = link_to(edit_company_path(current_company), class: "col-xs-5 underline-a text-muted") do
+                  %h5 Cancel

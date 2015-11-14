@@ -1,0 +1,27 @@
+- noti_lis = notifications_formated(current_company, @notifications, true)
+
+.page-content#dashboard_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} Notifications
+
+  = render :partial => "shared/messages"
+  
+  .container-fluid-md
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            %h4 Notifications
+
+          .table-responsive
+            %table.table.table-bordered
+              %tbody
+                %tr
+                  %td
+                    .list-group.margin-sm
+                      - noti_lis.each do |li|
+                        = raw li
+
+            = paginate(@notifications)

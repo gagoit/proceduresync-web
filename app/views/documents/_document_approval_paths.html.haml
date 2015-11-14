@@ -1,0 +1,20 @@
+.panel.panel-default#div_belongs_to_paths{:'data-load-table-url' => load_company_structure_table_company_path(current_company, document_id: document.id, type: "to_approve", table_id: "table-belongs-to-paths")}
+  .panel-heading
+    %h4 #{t("document.approve.title")}
+    = t("document.approve.description")
+
+  .panel-body
+    .panel-action
+      %h5.space-bottom #{t("document.approve.action.title")}
+      %select.form-control.col-xs-8#approve_document_to{name: "document[approve_document_to]"}
+        %option{value: "approve_all"} #{t("document.approve.action.approve_all")}
+        %option{value: "approve_selected_areas"} #{t("document.approve.action.approve_selected_areas")}
+        %option{value: "not_approve"} #{t("document.approve.action.not_approve")}
+
+    .approve-document-to.hidden
+      .company-areas-table
+
+    %div.actions
+      %button.btn.btn-primary.col-xs-3{:type => "submit", id: "submit_document_btn"} #{t("buttons.approve")}
+      / %a.col-xs-3.underline-a.text-muted{:href => "javascript:void(0);", :onclick => "Proceduresync.reload_page()"}
+      /   %h5 Cancel

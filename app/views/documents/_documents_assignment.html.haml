@@ -1,0 +1,32 @@
+#documents_assignment_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1", :'data-has-shown' => 'false', :'data-can-add-edit-doc' => local_assigns[:can_add_edit_doc].to_s, :'data-load-table-url' => load_company_structure_table_company_path(current_company, type: "bulk_assignment")}
+  .modal-dialog.resized-2
+    .modal-content
+      .modal-header
+        %h3 #{t("document.bulk_assignment.title")}
+        = t("document.bulk_assignment.description")
+      
+      .modal-body
+        #term_conditions
+          .container
+            .panel-default
+              .panel-body.panel-e
+                %h4.text-primary #{t("document.bulk_assignment.action.title")}
+                .form-group
+                  %select.form-control.select2.no-search#select-action-type
+                    - ["add_accountability", "remove_accountability"].each do |type|
+                      %option{value: type, :'data-help-text' => t("document.bulk_assignment.action.#{type}.help_text")} #{t("document.bulk_assignment.action.#{type}.title")}
+
+                  %input#paths{:name => "paths", :type => "hidden", :value => "[]"}
+
+                %p.help-text
+                  = t("document.bulk_assignment.action.add_accountability.help_text")
+
+                //table
+                .company-areas-table
+
+              .text-center
+                
+                %button.btn.btn-primary.btn-submit-modal#submit_update_paths{:type => "submit", :'data-url' => update_paths_documents_path} #{t("buttons.submit")}
+                %a.underline-a-modal.text-muted{"data-dismiss" => "modal", :href => "javascript:;"}
+                  %h5 #{t("buttons.cancel")}
+                

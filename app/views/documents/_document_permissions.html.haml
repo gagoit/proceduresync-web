@@ -1,0 +1,16 @@
+.panel.panel-default#div_belongs_to_paths{:'data-load-table-url' => load_company_structure_table_company_path(current_company, document_id: document.id, table_id: "table-belongs-to-paths", type: "edit_document"), :'data-can-add-edit-doc' => local_assigns[:can_add_edit_doc].to_s}
+  .panel-heading
+    %h4 Assign Document
+    = assign_doc_text(current_company)
+
+  .panel-body
+    - if current_company.is_hybrid?
+      - assign_for_text = t("document.assign_for")
+      - assign_for_when_restricted_text = t("document.assign_for_when_restricted")
+      .panel-action
+        %h5.space-bottom Action
+        %select.form-control.no-search#assign_document_for{name: "document[assign_document_for]", value: document.assign_document_for, disabled: !local_assigns[:can_add_edit_doc]}
+          - assign_for_text.each do |key, value|
+            %option{:'data-text-when-restricted' => assign_for_when_restricted_text[key], :'data-text' => assign_for_text[key], value: "#{key}", selected: (key.to_s == document.assign_document_for) } #{value}
+
+    .company-areas-table

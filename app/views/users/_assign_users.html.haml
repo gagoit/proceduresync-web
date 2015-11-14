@@ -1,0 +1,23 @@
+#assign_users_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1", :'data-has-shown' => 'false'}
+  .modal-dialog.resized-2
+    .modal-content
+      .modal-header
+        %h3 #{t("user.assign_users.title")}
+        = t("user.assign_users.description")
+        
+      .modal-body
+        #term_conditions
+          .container
+            .panel-default
+              .panel-body.panel-e
+                %h4.text-primary #{t("user.assign_users.assign_to.title")}
+                .form-group
+                  = select_tag "company_path_ids", options_for_select(current_company.company_paths, []), class: "form-control select2 form-chosen", placeholder: t("user.assign_users.assign_to.placeholder"), name: "user_company_path_ids", id: "user_company_path_ids"
+
+                  %input#paths{:name => "paths", :type => "hidden", :value => "[]"}
+              
+              .text-center
+                %button.btn.btn-primary.btn-submit-modal#submit_update_users_path{:type => "submit", :'data-url' => update_path_users_path} #{t("buttons.submit")}
+                %a.underline-a-modal.text-muted{"data-dismiss" => "modal", :href => "javascript:;"}
+                  %h5 #{t("buttons.cancel")}
+                

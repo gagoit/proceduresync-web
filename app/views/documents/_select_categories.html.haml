@@ -1,0 +1,5 @@
+%select.form-control.select2{name: (local_assigns[:field_name] || "document[category_id]"), id: (local_assigns[:field_id] || "document_category_id"), "data-placeholder" => t("document.form.category.placeholder"), disabled: !can_add_edit_doc, required: true}
+  %option
+  - categories.pluck(:id, :name).each do |category|
+    %option{value: "#{category[0]}", selected: category[0].to_s == current_cate_id.to_s ? true : false}
+      = category[1]

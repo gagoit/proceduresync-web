@@ -1,0 +1,16 @@
+%ul.dropdown-menu.dropdown-notifications.pull-right
+  %li.dropdown-title.bg-inverse
+    - if unread_noti_num && unread_noti_num > 0
+      Notifications (#{number_with_precision(unread_noti_num, strip_insignificant_zeros: true)})
+    - else
+      Notifications
+
+  - noti_lis = notifications_formated(current_company, notifications)
+  - noti_lis.each do |li|
+    = raw li
+
+  - if show_see_more
+    %li.dropdown-footer
+      %a{:href => dashboard_path}
+        %i.fa.fa-share
+        See More

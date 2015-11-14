@@ -1,0 +1,45 @@
+en:
+  mongoid:
+    models:
+      user: User
+      document: Document
+      import_user: "Import Users Result"
+
+    attributes: &model_attribute_tranlations
+      document:
+        doc_id: ID
+        title: Title
+        active: Active
+        category_id: Category
+        created_time: Created
+        effective_time: "Effective From"
+        version: Version
+        restricted: Restricted
+        expiry: Expires
+        curr_version: Version
+        belongs_to_paths: Area
+        approved_paths: "Approved Area"
+        category_name: "Category"
+        assign_document_for: "Assign For"
+        document_correction: "Document Correction. Do not make document unread."
+
+      company:
+        credit_card_number: Credit Card Number
+        name_on_card: Name on Card
+        card_expiry: Expiry
+        card_ccv: CCV
+        saasu_contact_id: "Saasu Contact ID"
+      version:
+        file_url: File
+      user:
+        name: Name
+        active: Active
+        email: Email
+        phone: Phone
+        home_email: "Backup Email"
+        password: Password
+        password_confirmation: "Verify Password"
+        company_path_ids: "Area"
+        permission_id: Permission
+        supervisor_path_ids: "Supervisor's Area"
+        approver_path_ids: "Approver's Area"

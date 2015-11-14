@@ -1,0 +1,16 @@
+.table-responsive
+  %table.table.table-bordered
+    %tbody
+      %tr
+        %td
+          .list-group.margin-sm
+            - documents.each do |doc|
+              - if cur_ver = doc.current_version
+                - url = (doc_filter == "to_approve") ? to_approve_document_path(doc) : document_version_path(doc, cur_ver)
+
+                %a.list-group-item{:href => url}
+                  %i.fa.fa-file-text-o.pull-left.large-icon
+                  %h5.list-group-item-heading
+                    = doc.title
+                  %small.list-group-item-text
+                    = document_info(doc)

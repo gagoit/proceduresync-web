@@ -1,0 +1,135 @@
+<!doctype html>
+/[if IE 8] <html class="ie8">
+/[if IE 9] <html class="ie9">
+/ [if gt IE 9]><!
+%html
+  / <![endif]
+  %head
+    / Meta, title, CSS, favicons, etc.
+    %meta{:charset => "utf-8"}
+      %meta{:content => "IE=edge,chrome=1", "http-equiv" => "X-UA-Compatible"}
+        %title= content_for?(:title) ? yield(:title) : "Proceduresync"
+        %meta{:content => content_for?(:description) ? yield(:description) : "Proceduresync", :name => "description"}
+        %meta{:name => "viewport", :content => "width=device-width, initial-scale=1, maximum-scale=1"}
+
+        = stylesheet_link_tag :'application-0', :media => "all"
+        = stylesheet_link_tag :'application-1', :media => "all"
+        = stylesheet_link_tag :'application-2', :media => "all"
+        = stylesheet_link_tag :'application-3', :media => "all"
+        = javascript_include_tag :application
+        = csrf_meta_tags
+        = yield(:head)
+
+  %body
+    %header
+      %nav.navbar.navbar-default.navbar-static-top.no-margin{:role => "navigation"}
+        .navbar-brand-group
+          /
+            <a class="navbar-sidebar-toggle navbar-link" data-sidebar-toggle>
+            <i class="fa fa-lg fa-fw fa-bars"></i>
+            </a>
+          %a.navbar-brand.hidden-xxs{:href => dashboard_path}
+            = image_tag current_company.logo.url, class: "logo-rio company-logo", height: "24px"
+        %ul.nav.navbar-nav.navbar-nav-expanded.pull-right.margin-md-right
+          - search = current_search
+          %li
+            .navbar-form
+              %form#form-navbar-search.navbar-search{action: search[:path], method: (search[:method] || :post)}
+                - search[:fields].each do |field|
+                  %input.form-control{id: "navbar-#{field}", name: field, :type => "hidden", value: params[field.to_sym].to_s}
+
+                %input#navbar-search-text.form-control{:placeholder => search[:placeholder], :type => "text", name: "search", value: params[:search].to_s}
+                %button.btn{:type => "submit"}
+                  %i.fa.fa-search
+
+          %li.dropdown.dropdown-notifications-li{:'data-url' => notifications_user_path(current_user)}
+            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "javascript:;"}
+              %i.glyphicon.glyphicon-globe
+              - if (unread_noti_num = current_user.unread_notifications(current_company).count) && unread_noti_num > 0
+                %span.badge.badge-up.badge-danger.badge-small
+                  = number_with_precision(unread_noti_num, strip_insignificant_zeros: true)
+
+          //Company
+          %li.dropdown
+            - comps = (current_user.admin? || current_user.super_help_desk_user?) ? Company.order([:name, :asc]).pluck(:id, :name) : current_user.companies.active.order([:name, :asc]).pluck(:id, :name)
+
+            %a.dropdown-toggle.navbar-company{"data-toggle" => "dropdown", :href => "javascript:;"}
+              %i.fa.fa-building-o
+              %span.hidden-xs #{current_company.name}
+              - if comps.length > 1
+                %b.caret
+              
+            - if comps.length > 1
+              %ul.dropdown-menu.pull-right-xs.dropdown-menu-right
+                %li.arrow
+                - comps.each do |comp|
+                  %li
+                    %a.change-company{:href => change_company_view_users_path, :'data-uid' => comp[0]} #{comp[1]}
+
+          %li.dropdown
+            %a.dropdown-toggle.navbar-user{"data-toggle" => "dropdown", :href => "javascript:;"}
+              %i.fa.fa-user
+              %span.hidden-xs #{current_user.name}
+              %b.caret
+            %ul.dropdown-menu.pull-right-xs.dropdown-menu-right
+              %li.arrow
+              = render :partial => "shared/right_nav_items"
+
+              %li.divider
+
+              %li
+                %a{:href => support_path, target: "_blank"} Support
+
+              %li
+                %a{:href => administrator_contact_path} Administrator Contact
+
+              %li
+                = link_to "Profile", profile_user_path(current_user)
+
+              / - if !current_user.admin? && !current_user.super_help_desk_user?
+              /   %li
+              /     = link_to "Devices", devices_user_path(current_user)
+              %li
+                = link_to "Sign Out", destroy_user_session_path, :method => "delete", class: "sign-out"
+
+    .page-wrapper
+      %aside.sidebar.sidebar-default
+        .sidebar-profile
+          = image_tag "demo/default_ava.1.png", class: "img-circle profile-image"
+          .profile-body
+            %h4 #{current_user.name}
+            .sidebar-user-links
+              = link_to(edit_user_path(current_user), class: "btn btn-link btn-xs", "title" => t("navigations.profile.title"), "data-placement" => "bottom", "data-toggle" => "tooltip") do
+                %i.fa.fa-user
+
+              %a.btn.btn-link.btn-xs{"title" => t("navigations.support.title"), "data-placement" => "bottom", "data-toggle" => "tooltip", :href => support_path, target: "_blank"}
+                %i.fa.fa-globe
+
+              %a.btn.btn-link.btn-xs{"title" => t("navigations.administrator_contact.title"), "data-placement" => "bottom", "data-toggle" => "tooltip", :href => administrator_contact_path}
+                %i.fa.fa-comments
+              
+              = link_to(destroy_user_session_path, :method => "delete", class: "btn btn-link btn-xs sign-out", "title" => t("navigations.logout.title"), "data-placement" => "bottom", "data-toggle" => "tooltip") do
+                %i.fa.fa-sign-out
+
+        %nav#left_nav_items
+          %h5.sidebar-header{:style => "cursor:pointer"} #{t("navigations.title")}
+          %ul.nav.nav-pills.nav-stacked
+            - left_nav_items.each do |item|
+              = render "shared/a_left_nav_item", {item: item}
+
+          %ul.nav.nav-pills.nav-stacked
+            %li.nav-dropdown.open#accountable_categories_nav
+              %a{:href => "#", :title => t("navigations.accountable_categories.title")}
+                = t("navigations.accountable_categories.title")
+              = render "shared/accountable_categories_nav"
+                
+            %li.nav-dropdown#all_categories_nav
+              %a{:href => "#", :title => t("navigations.all_categories.title")}
+                = t("navigations.all_categories.title")
+              = render "shared/all_categories_nav"
+
+      .page-content
+        = yield
+
+:javascript
+  var imageLoadingPath = '#{image_tag('loading.gif')}';

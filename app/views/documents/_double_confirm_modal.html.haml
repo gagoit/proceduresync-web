@@ -1,0 +1,14 @@
+#double_title_confirm.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+  .modal-dialog.auto-width
+    .modal-content
+      .modal-body
+        #double_confirm
+          .container
+            .panel.panel-default
+              .panel-body.panel-e.scrollable
+                %h1.text-primary The Title/ID is already taken
+                %p.text-muted
+                  A document with that Title/ID currently exists. Would you like go to that document to add a new version?
+              .spacing-bottom
+              %a.btn.btn-default.btn-block.btn-lg#do-not-accept{ "data-dismiss" => "modal"}No - I will change my Title/ID
+              %a.btn.btn-primary.btn-block.btn-lg#accept Yes - go to document

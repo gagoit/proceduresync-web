@@ -1,0 +1,32 @@
+= content_for :title do
+  Login
+
+#login_page{:'data-check-login-url' => check_login_before_users_path}
+  .container
+    .panel.panel-default.form-container
+      .panel-body
+        .col-md-12.col-xs-12.margin-xl-bottom
+          = image_tag "logo.png", width: "100%"
+        .col-md-12.col-xs-12
+          = form_for(resource, as: resource_name, url: session_path(resource_name), html: {class: "login", role: "form"}) do |f|
+            = devise_error_messages!
+
+            .form-group
+              %label.sr-only{:for => "user_email"} Email Address
+              = f.email_field :email, class: "form-control input-lg", placeholder: "Email Address", type: "email", :required => "required", "aria-required" => "true", value: params[:email]
+
+            .form-group
+              %label.sr-only{:for => "user_password"} Password
+              = f.password_field :password, class: "form-control input-lg", placeholder: "Password", type: "password", :required => "required", "aria-required" => "true", value: params[:password]
+
+            %input.btn.btn-primary.btn-block.btn-lg{type: "submit", value: "SIGN IN"}
+
+      .panel-body.text-center
+        .margin-bottom
+          %a.text-muted.text-underline{:href => new_password_path(resource_name)} Forgot Password?
+        %div
+          By using Proceduresync, you agree to the
+          %a.text-muted.text-underline#show-terms-and-conditions{:href => "#"} Terms & Conditions
+
+
+  = render :partial => "shared/terms_and_conditions_modal"

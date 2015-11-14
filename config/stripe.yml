@@ -1,0 +1,12 @@
+##
+# Stripe config: 
+#   secret_key
+##
+development:
+  secret_key: 'sk_test_WNBIrM2J7Rc33joXGTBLvOJy'
+
+production:
+  secret_key: 'sk_live_Y8hSaKROi5rsMMXqOr46UiNV'
+
+test:
+  secret_key: 'sk_test_WNBIrM2J7Rc33joXGTBLvOJy'

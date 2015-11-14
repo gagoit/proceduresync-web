@@ -1,0 +1,38 @@
+= content_for :title do
+  Reset Password
+
+#reset_page
+  .container
+    .panel.panel-default.form-container
+      .panel-body
+        .col-md-12.col-xs-12.margin-xl-bottom
+          = image_tag "logo.png", width: "100%"
+        .col-md-12.col-xs-12
+          = form_for(resource, as: resource_name, url: password_path(resource_name), html: {remote: true, method: :post, class: "login", role: "form"} ) do |f|
+            = devise_error_messages!
+
+            .form-group
+              %label.sr-only{:for => "user_email"} Email Address
+              = f.email_field :email, class: "form-control input-lg", placeholder: "Email Address", type: "email", :required => "required", "aria-required" => "true"
+
+            %input.btn.btn-primary.btn-block.btn-lg{type: "submit", value: "Reset Password"}
+
+      .panel-body.text-center
+        .margin-bottom
+          %a.text-muted.text-underline{:href => new_session_path(resource_name)} Login
+
+#password_reset_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+  .modal-dialog.modal-400
+    .modal-content
+      .modal-body
+        %h3 Password Reset
+        A new password has been sent to your email address.
+      %button.btn.btn-white.btn-block{"data-dismiss" => "modal", :type => "text", "data-url" => new_session_path(resource_name)} OK
+
+#password_reset_failed_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+  .modal-dialog.modal-400
+    .modal-content
+      .modal-body
+        %h3 Password Reset
+        Email address can not be found.
+      %button.btn.btn-white.btn-block{"data-dismiss" => "modal", :type => "text"} OK

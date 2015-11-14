@@ -1,0 +1,8 @@
+%option{value: "all", selected: (selected_values.include?("all") rescue false)} #{t("reports.form.users.options.all")}
+
+- if u_comp.try(:is_supervisor)
+  %option{value: "my_team", selected: (selected_values.include?("my_team") rescue false)} #{t("reports.form.users.options.my_team")}
+
+- users.each do |user|
+  %option{value: "#{user[0]}", selected: (selected_values.include?(user[0].to_s) rescue false)}
+    = user[1]

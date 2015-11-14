@@ -1,0 +1,82 @@
+- can_add_edit_doc = PermissionService.can_add_edit_document(current_user, current_company)
+- can_make_document_restricted = PermissionService.can_make_document_restricted(current_user, current_company)
+- help_type = @document.new_record? ? 'add_document' : 'edit_document'
+
+.panel.panel-default
+  .panel-heading
+    %h4 
+      #{t("document.form.title")}
+
+      %a.pull-right.help-icon{:href => t("help_links.#{help_type}.title"), target: "_blank", "title" => t("help_links.#{help_type}.tooltip"), "data-placement" => "bottom", "data-toggle" => "tooltip"}
+        %i.fa.fa-info-circle
+
+    = t("document.form.locked_fields_desc")
+    
+  .panel-body
+    .form-group
+      %label
+        = f.check_box :active, class: "icheck square-blue", disabled: !can_add_edit_doc
+        = f.label :active, class: "control-label"
+    
+    .form-group
+      = f.label :title, class: "control-label bold"
+      .controls
+        = f.text_field :title, :placeholder => "Document Title", class: "form-control", disabled: !can_add_edit_doc
+
+    .form-group
+      = f.label :doc_id, class: "control-label bold"
+      .controls
+        = f.text_field :doc_id, :placeholder => "Document ID", class: "form-control", disabled: !can_add_edit_doc
+
+    .form-group
+      = f.label :category_id, class: "control-label bold"
+      %a.pull-right#edit-category-name{href: ""} #{t("buttons.edit")}
+      = render "select_categories", {current_cate_id: @document.category_id, can_add_edit_doc: can_add_edit_doc, categories: @categories}
+
+    .form-group
+      = f.label :created_time, class: "control-label bold"
+      .input-group.date
+        %input.form-control#document_start_time{"data-rel" => "datetimepicker", :type => "text", name: "document[created_time]", value: BaseService.time_formated(current_company, @document.created_time, I18n.t("datetime.format")), readonly: "readonly", disabled: !can_add_edit_doc, "data-date-format"=>  I18n.t("datetime.picker_format")}
+          %span.input-group-addon
+            %i.glyphicon.glyphicon-calendar
+
+    .form-group
+      = f.label :effective_time, class: "control-label bold"
+      .input-group.date
+        %input.form-control#document_effective_time{"data-rel" => "datetimepicker", :type => "text", name: "document[effective_time]", value: BaseService.time_formated(current_company, @document.effective_time, I18n.t("datetime.format")), readonly: "readonly", disabled: !can_add_edit_doc, "data-date-format"=>  I18n.t("datetime.picker_format")}
+          %span.input-group-addon
+            %i.glyphicon.glyphicon-calendar
+
+    .form-group
+      = f.label :expiry, class: "control-label bold"
+      %a.pull-right#clear-input{href: ""} #{t("buttons.clear")}
+      .input-group.date
+        %input.form-control#document_expiry{"data-rel" => "datetimepicker", :type => "text", name: "document[expiry]", value: BaseService.time_formated(current_company, @document.expiry, I18n.t("datetime.format")), readonly: "readonly", disabled: !can_add_edit_doc, "data-date-format"=>  I18n.t("datetime.picker_format")}
+          %span.input-group-addon
+            %i.glyphicon.glyphicon-calendar
+
+    .form-group
+      %label.control-label.bold{:for => "document_curr_version"} #{t("document.form.version.title")}
+      .controls
+        %input#version.form-control{:placeholder => t("document.form.version.placeholder"), :type => "text", name: "document[curr_version]", value: @document.curr_version, disabled: !can_add_edit_doc}
+
+    %label
+      = f.check_box :restricted , class: "icheck square-blue", disabled: !can_make_document_restricted
+      = f.label :restricted, class: "control-label"
+
+    = f.hidden_field :belongs_to_paths
+    = f.hidden_field :restricted_paths
+    %input{:type => "hidden", name: "version[file_url]", value: "", id: "document_version_file_url"}
+    %input{:type => "hidden", name: "version[file_name]", value: "", id: "document_version_file_name"}
+    %input{:type => "hidden", name: "version[file_size]", value: "", id: "document_version_file_size"}
+
+    - if submit_text == "Submit"
+      %br
+      %br
+      %div
+        %button.btn.btn-primary.col-xs-2{:type => "submit", id: "submit_document_btn", "title" => ""} #{submit_text}
+        / %a.col-xs-3.underline-a.text-muted{:href => "javascript:void(0);", :onclick => "Proceduresync.reload_page()"}
+        /   %h5 Cancel
+        - unless f.object.new_record?
+          = f.check_box :document_correction, class: "icheck square-blue"
+          = f.label :document_correction, class: "control-label"

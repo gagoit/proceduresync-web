@@ -1,0 +1,18 @@
+#terms_and_conditions.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+  .modal-dialog.auto-width
+    .modal-content
+      .modal-header
+        %button.close{"data-dismiss" => "modal", :type => "button"}
+          %span{"aria-hidden" => "true"} &times;
+          %span.sr-only Close
+        %h1.text-primary Terms And Conditions Of Service
+      .modal-body
+        #term_conditions
+          .container
+            .panel.panel-default
+              .panel-body.panel-e
+                .pdf-viewer{:'data-url' => terms_and_conditions_assets_url, style: "min-height: 300px;"}
+                %iframe.pdf-viewer-ie8{:allowfullscreen => "allowfullscreen", :src => terms_and_conditions_view_url, style: "width: 100%;"}
+
+              %a.btn.btn-default.btn-block.btn-lg#do-not-accept I do not accept these terms
+              %a.btn.btn-primary.btn-block.btn-lg#accept I have read and I accept these Terms & Conditions, and where relevant on behalf of my organisation.

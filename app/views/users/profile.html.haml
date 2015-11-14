@@ -1,0 +1,95 @@
+- u_comp = @user.user_company(current_company)
+- user_company_permission = u_comp.try(:permission)
+- has_perm_add_edit_user = PermissionService.has_perm_add_edit_user(current_user, current_company, @user)
+.page-content#user_profile_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li
+        %a{:href => "javascript:;"} #{t("user.profile.title")}
+
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row.no-gutter
+      .col-lg-6
+        .panel.panel-default
+          .panel-heading
+            %h4 
+              = @user.name
+            = t("user.profile.locked_fields_desc")
+            \&nbsp
+          .panel-body
+            = form_for(@user, url: user_path(@user, format: :json), html: {class: "login", role: "form", method: :put, id: "edit_user"}) do |f|
+              .form-group
+                = f.label :name, class: "control-label bold"
+                .controls
+                  = f.text_field :name, class: "form-control", placeholder: "Name", required: "required", disabled: !has_perm_add_edit_user
+              
+              .form-group
+                = f.label :email, class: "control-label bold"
+                .controls
+                  = f.email_field :email, class: "form-control", placeholder: "Email@example.com", required: "required", disabled: !has_perm_add_edit_user
+              
+              - if !@user.admin? && !@user.super_help_desk_user?
+                .form-group
+                  %label.control-label
+                    %strong #{t("user.form.belongs_to.title")}
+                  = select_tag "company_path_ids", options_for_select(company_paths_for_select(current_user, current_company), u_comp.try(:company_path_ids)), class: "form-control select2 form-chosen", placeholder: t("user.form.belongs_to.placeholder"), name: "user[company_path_ids]", id: "user_company_path_ids", disabled: !has_perm_add_edit_user
+
+              .form-group
+                = f.label :home_email, class: "control-label bold"
+                .controls
+                  = f.email_field :home_email, class: "form-control", placeholder: "Email@example.com"
+
+              .form-group
+                = f.label :password, class: "control-label bold"
+                .controls
+                  = f.password_field :password, class: "form-control", placeholder: "Password"
+
+              .form-group
+                = f.label :password_confirmation, class: "control-label bold"
+                .controls
+                  = f.password_field :password_confirmation, class: "form-control", placeholder: "Verify Password"
+
+              %div
+                %input#update_user.btn.btn-primary.col-xs-3{type: "submit", value: "Submit"}
+                / = link_to(profile_user_path(@user), class: "col-xs-2 underline-a text-muted") do
+                /   %h5 #{t("buttons.cancel")}
+
+        = render "users/user_devices", {user: @user}
+        = render "users/approval_email_settings", {user: @user}
+
+      .col-lg-6.right-site
+        - is_approver = (!current_company.is_standard? && u_comp.try(:is_approver))
+        - is_supervisor = u_comp.try(:is_supervisor)
+
+        - if is_approver
+          .panel.panel-default#show_approver_supervisor_areas
+            .panel-heading
+              %h4
+                = t("user.profile.approver.title")
+              = t("user.profile.approver.description")
+            .panel-body
+              .form-group#approver-section
+                %table.table.table-striped.table-areas
+                  %tbody
+                    - name_of_paths(current_company, u_comp.try(:approver_path_ids) || []).each do |path|
+                      %tr 
+                        %td #{path}
+
+        - if is_supervisor
+          .panel.panel-default#show_approver_supervisor_areas
+            .panel-heading
+              %h4 
+                = t("user.profile.supervisor.title")
+              = t("user.profile.supervisor.description")
+            .panel-body
+              .form-group#supervisor-section
+                %table.table.table-striped.table-areas
+                  %tbody
+                    - name_of_paths(current_company, u_comp.try(:supervisor_path_ids) || []).each do |path|
+                      %tr 
+                        %td #{path}
+                      
+        = render "users/logs"
+        

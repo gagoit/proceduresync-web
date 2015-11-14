@@ -1,0 +1,4 @@
+.form-group
+  %label.control-label
+    %strong #{t("reports.form.areas.title")}
+  = select_tag "areas", options_for_select(company_paths_for_select_areas_in_reports(current_user, current_company), selected_value), class: "form-control select2", placeholder: t("reports.form.areas.placeholder"), name: field_name, id: field_id

@@ -1,0 +1,7 @@
+.panel.panel-default#user_devices_panel
+  .panel-heading
+    %h4 #{t("user.devices.title")}
+    
+  .panel-body.scroll-panel
+    .table-responsive
+      %table#table-user-devices.table.table-striped{:width => "100%", :'data-url' => devices_user_path(user), "data-is-owner" => (current_user.id == user.id).to_s}

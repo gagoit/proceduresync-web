@@ -1,0 +1,19 @@
+#confirm_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+  .modal-dialog.auto-width
+    .modal-content
+      .modal-header
+        %h3
+          = modal[:title]
+      .modal-body
+        #term_conditions
+          .panel-default
+            .panel-body.panel-e
+              %p.text-muted
+                = modal[:content]
+            .text-center
+              - if modal[:accept_btn]
+                %button.btn.btn-primary.btn-submit-modal#accept{:type => "submit",  'data-dismiss' => "#{'modal' if modal[:accept_dismiss]}"}
+                  = modal[:accept_btn]
+              - if modal[:disaccept_btn]
+                %a.underline-a-modal.text-muted#do-not-accept{"data-dismiss" => "modal", :href => "javascript:;"}
+                  = modal[:disaccept_btn]

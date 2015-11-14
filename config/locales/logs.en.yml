@@ -1,0 +1,105 @@
+en:
+  logs:
+    user:
+      read_document: "Read Document '%{doc_title}'."
+      favourite_document: "Added '%{doc_title}' to Favourites."
+      unfavourite_document: "Removed '%{doc_title}' from Favourites."
+      approved_document: "Approved Document '%{doc_title}'."
+      unapproved_document: "Unapproved Document '%{doc_title}'."
+      updated_version: "Updated Version."
+      created_document: "Created Document '%{doc_title}'."
+      updated_document: "Changed Document '%{doc_title}'."
+      made_document_inactive: "Made Document '%{doc_title}' Inactive."
+      made_document_active: "Made Document '%{doc_title}' Active."
+      change_category: "Changed Category to '%{cate_name}'."
+      updated_user: "Changed User %{user_name}."
+      created_user: "Created User %{user_name}."
+      created_organisation_structure: "Created %{node_type} %{node_name}."
+      updated_organisation_structure: "Updated %{node_type} %{node_name}."
+      created_permission: "Created Permission %{perm_name}."
+      updated_permission: "Updated Permission %{perm_name}."
+      updated_company: "Updated Company Info."
+
+    document:
+      read_document: "%{user_name} Read Document."
+      favourite_document: "%{user_name} Added Document to Favourites."
+      unfavourite_document: "%{user_name} Removed Document from Favourites."
+      approved_document: "%{user_name} Approved Document."
+      unapproved_document: "%{user_name} Unapproved Document."
+      updated_version: "%{user_name} Changed Document to Version %{version}."
+      change_category: "%{user_name} Changed Category to '%{cate_name}'."
+      created_document: "%{user_name} Created Document."
+      updated_document: "%{user_name} Changed Document."
+      made_document_inactive: "%{user_name} Made Document Inactive."
+      made_document_active: "%{user_name} Made Document Active."
+
+    company:
+      read_document: "Read Document '%{doc_title}'."
+      favourite_document: "Made '%{doc_title}' a Favourite."
+      unfavourite_document: "Removed Document '%{doc_title}' from Favourites."
+      approved_document: "Approved Document '%{doc_title}'."
+      unapproved_document: "Unapproved Document '%{doc_title}'."
+      created_document: "Created Document '%{doc_title}'."
+      updated_document: "Changed Document '%{doc_title}'."
+      made_document_inactive: "Made Document '%{doc_title}' Inactive."
+      made_document_active: "Made Document '%{doc_title}' Active."
+      updated_version: "Changed Version of Document '%{doc_title}' to %{version}."
+      change_category: "Changed Category to '%{cate_name}'."
+      updated_user: "Changed User %{user_name}."
+      created_user: "Created User %{user_name}."
+      created_organisation_structure: "Created %{node_type} %{node_name}."
+      updated_organisation_structure: "Updated %{node_type} %{node_name}."
+      created_permission: "Created Permission %{perm_name}."
+      updated_permission: "Updated Permission %{perm_name}."
+      updated_company: "Updated Company Info."
+
+    approval_log:
+      approve: "Approved by %{user_name} to:"
+      not_approve: "Changed by %{user_name}. Not Accountable"
+
+    attributes:
+      document:
+        doc_id: ID
+        title: Title
+        active: Active
+        category_id: Category
+        created_time: Created
+        effective_time: "Effective From"
+        version: Version
+        restricted: Restricted
+        expiry: Expires
+        curr_version: Version
+        belongs_to_paths: Area
+        approved_paths: "Add Accountabilities"
+        not_approved_paths: "Add Approval"
+        category_name: "Category"
+        assign_document_for: "Assign For"
+        removed_accountabilities: "Removed accountabilities"
+        curr_version_size: "File size"
+        restricted_paths: "Restricted Areas"
+      company:
+        credit_card_number: Credit Card Number
+        name_on_card: Name on Card
+        card_expiry: Expiry
+        card_ccv: CCV
+        saasu_contact_id: "Saasu Contact ID"
+      version:
+        file_url: File
+      user:
+        name: Name
+        active: Active
+        email: Email
+        phone: Phone
+        home_email: "Backup Email"
+        password: Password
+        password_confirmation: "Verify Password"
+        company_path_ids: "Area"
+        permission_id: Permission
+        supervisor_path_ids: "Supervisor's Area"
+        approver_path_ids: "Approver's Area"
+
+  boolean_values:
+    "1": "True"
+    "0": "False"
+    "false": "False"
+    "true": "True"

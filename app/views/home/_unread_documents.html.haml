@@ -1,0 +1,4 @@
+.col-lg-12.dashboard-panel
+  .panel.panel-default.unread-docs{:"data-url" => documents_path({format: :json, page: 1, per_page: 20, filter: "unread"})}
+    .panel-heading
+      %h4.link-face{:"data-url" => documents_path({filter: "unread"})} Unread Documents

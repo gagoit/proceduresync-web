@@ -1,0 +1,6 @@
+.panel.panel-default
+  .panel-heading
+    %h4 Approval Logs
+  .panel-body
+    .table-responsive
+      %table#table-document-approval-logs.table.table-striped{:'data-url' => approval_logs_document_path(document), :'data-per-page' => PER_PAGE}

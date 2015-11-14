@@ -1,0 +1,14 @@
+%table.table.table-striped
+  %thead
+    
+  %tbody
+    - available_perms = PermissionService.available_perms(current_user, current_company)
+    - available_perms.each_with_index do |key, index|
+      - tr_class = (index % 2) == 0 ? "odd" : "even"
+      %tr{class: tr_class}
+        %td.permission{:'data-key' => key}
+          .checkbox
+            %label
+              %input.icheck.square-blue{id: "permission_#{key}",:type => "checkbox", checked: ((current_perm[key] rescue false) || false), disabled: !is_custom_perm}
+
+        %td #{t("permission.#{key}")}

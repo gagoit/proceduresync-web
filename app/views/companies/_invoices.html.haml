@@ -1,0 +1,12 @@
+.panel.panel-default#invoices_panel
+  .panel-heading
+    %h4 
+      #{t("company.invoices.title")}
+
+      %button.btn.btn-primary.pull-right#generate-invoice{:'data-url' => generate_invoice_company_path(current_company)} Generate Invoice
+
+    = t("company.invoices.description")
+    
+  .panel-body.scroll-panel
+    .table-responsive
+      %table#table-invoices.table.table-striped{:width => "100%", :'data-url' => invoices_company_path(current_company), :'data-per-page' => 1000}

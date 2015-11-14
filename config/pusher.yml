@@ -1,0 +1,12 @@
+##
+# Pusher config: 
+#   server: url of pushser server
+##
+development:
+  server: http://172.16.6.24:3000/
+
+production:
+  server: http://pusher.proceduresync.com
+
+test:
+  server: http://172.16.6.24:3000/

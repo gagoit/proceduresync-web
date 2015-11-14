@@ -1,0 +1,32 @@
+.page-content#users_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} #{t("user.index.title")}
+
+  = render :partial => "shared/messages"
+  
+  .container-fluid-md
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            .row
+              .col-xs-7
+                %h4 #{t("user.index.table.title")}
+                = t("user.index.table.description")
+              .col-xs-5
+                .col-sm-3.panel-action
+                .col-sm-9.panel-action
+                  %select#select-actions.form-control.select2.no-search
+                    %option{value: "action"} #{t("user.index.action.title")}
+                    - if @can_add_edit_user
+                      %option{:value => "assign_users"} #{t("user.index.action.assign_users")}
+                      
+                    %option{:value => "download_csv", :'data-url' => export_csv_users_path(format: :csv)} #{t("user.index.action.download_csv")}
+
+          .panel-body.scroll-panel
+            .table-responsive
+              %table#all_users.table.table-striped.responsive{:width => "100%", "data-path" => users_path, "data-lowest-level" => current_company.lowest_level.titleize, "data-search" => params[:search], "data-per-page" => OBJECT_PER_PAGE[:user]}
+              
+  = render "assign_users"

@@ -1,0 +1,42 @@
+.page-content#document_settings_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.title-doc.active
+        %a{:href => documents_path} #{t("document.index.title")}
+  
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .panel.panel-default
+        .panel-heading
+          %h4 #{t("document_settings.title")}
+          = t("document_settings.description")
+          %br
+          %br
+          = t("document_settings.note")
+        .panel-body.company-address
+          .row
+            .col-lg-12.col-sm-12.col-md-12.col-xs-12
+              = form_tag(save_settings_documents_path(format: :js), method: :post, remote: :true, role: "form", id: "save_document_settings") do |form|
+                - current_settings = current_company.document_settings || []
+                - Company::DOCUMENT_SETTINGS_LIST.each do |e|
+                  .form-group
+                    .checkbox
+                      %label
+                        %input#document-id.icheck.square-blue{:type => "checkbox", checked: current_settings.include?(e), name: "document_settings[]", value: e}
+                          \&nbsp;
+                          %b #{t("document_settings.form.#{e}")}
+
+                - if PermissionService.can_edit_company_type(current_user, current_company)
+                  .form-group
+                    .checkbox
+                      %label
+                        %input#documents_have_approval.icheck.square-blue{:type => "checkbox", checked: current_company.documents_have_approval?, name: "documents_have_approval"}
+                          \&nbsp;
+                          %b #{t("document_settings.form.documents_have_approval")}
+                
+                %div
+                  %button.btn.btn-primary.col-xs-6.col-md-3{:type => "submit"} #{t("buttons.update")}
+                  %a.col-xs-4.underline-a.text-muted{:href => "javascript:;"}
+                    %h5 #{t("buttons.cancel")}

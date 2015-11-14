@@ -1,0 +1,80 @@
+#company_structure_page.page-content{"data-company-id" => current_company.id, "data-company-url" => company_path(current_company)}
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} Organisation
+  
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            %h4
+              Organisation
+              %i#preview_company_structure_btn.fa.fa-eye{:title => "Preview your Organisation Structure",  "data-placement" => "bottom", "data-toggle" => "tooltip"}
+              
+              %a.pull-right.help-icon{:href => t("help_links.edit_organisation.title"), target: "_blank", "title" => t("help_links.edit_organisation.tooltip"), "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                %i.fa.fa-info-circle
+
+            Edit your organization structure.
+
+          .panel-body
+            .table-responsive
+              %table.table.table-bordered.table-organisation.table-bordered
+                %tr
+                  %th.org-node-header.company-header{"data-node-type" => "division"}
+                    %span.title #{@company.company_label}
+                    %h5= current_company.name
+                  %th.org-node-header.division-header{"data-node-type" => "department"}
+                    %span.title #{@company.division_label}
+                    %h5
+                  %th.org-node-header.department-header{"data-node-type" => "group"}
+                    %span.title #{@company.department_label}
+                    %h5
+                  %th.org-node-header.group-header{"data-node-type" => "depot"}
+                    %span.title #{@company.group_label}
+                    %h5
+                  %th.org-node-header.depot-header{"data-node-type" => "panel"}
+                    %span.title #{@company.depot_label}
+                    %h5
+                %tr
+                  %td.org-node.company-childs{"data-node-type" => "division", "data-parent-type" => "company"}
+                  %td.org-node.division-childs{"data-node-type" => "department", "data-parent-type" => "division"}
+                  %td.org-node.department-childs{"data-node-type" => "group", "data-parent-type" => "department"}
+                  %td.org-node.group-childs{"data-node-type" => "depot", "data-parent-type" => "group"}
+                  %td.org-node.depot-childs{"data-node-type" => "panel", "data-parent-type" => "depot"}
+  / Modal Dialog
+  #edit_organisation_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+    .modal-dialog.resized-4
+      .modal-content
+        .modal-header
+          %h3 Edit Organisation
+          Here you can change the names of the different parts of the organisation structure
+        .modal-body
+          #term_conditions
+            .container
+              .panel-default
+                .panel-body.panel-e
+                  %h4.text-primary Area Name
+                  .form-group
+                    %input#name.form-control{:type => "text"}
+                  %input#id.form-control{:type => "hidden"}
+                  %input#type.form-control{:type => "hidden"}
+                .text-center
+                  %button#btn_change_name_org.btn.btn-primary.btn-submit-modal{:type => "submit"} Submit
+                  %a.underline-a-modal.text-muted{"data-dismiss" => "modal", :href => "javascript:;"}
+                    %h5 Cancel
+  / Modal Dialog End
+  / Modal Dialog
+  #preview_organisation_structure.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+    .modal-dialog.resized-2
+      .modal-content
+        .modal-header
+          %button.close{"data-dismiss" => "modal", :type => "button"}
+            %span{"aria-hidden" => "true"} &times;
+            %span.sr-only Close
+          %h3 Organisation structure
+        .modal-body
+  / Modal Dialog End

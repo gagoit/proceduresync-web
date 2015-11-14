@@ -1,0 +1,19 @@
+- data = UserService.staff_with_outstanding_documents(current_user, current_company)
+- if data.length > 0
+  - curr_time = BaseService.time_formated(current_company, Time.now.utc, "As of %l:%M%p %d/%m/%y")
+  .col-lg-12.dashboard-panel
+    .panel.panel-default
+      .panel-heading
+        %h4.link-face{:"data-url" => reports_path} Staff with outstanding Documents
+
+      .table-responsive
+        %table.table.table-bordered
+          %tbody
+            %tr
+              %td
+                .list-group.margin-sm
+                  - data.each do |item|
+                    %a.list-group-item{:href => item[:href], :'data-uid' => item[:id], class: item[:a_class]}
+                      %i.fa.fa-user.pull-left.large-icon
+                      %h5.list-group-item-heading #{item[:name]}
+                      %small.list-group-item-text #{curr_time} • #{pluralize(item[:unread_num], 'document')} unread

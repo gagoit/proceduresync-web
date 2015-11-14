@@ -1,0 +1,1356 @@
+
+var files;
+var Document = {
+  init: function(){
+    // init values
+    this.initValues();
+
+    // initEvents
+    this.initEvents();
+    this.initDataTable();
+  },
+
+  initValues: function(){
+    this.edit_document_page = $("#document_edit_page");
+    this.new_document_page = $("#document_new_page");
+    this.all_document_page = $("#documents_all_page");
+    this.view_document_page = $('#document_view_page');
+    this.approval_document_page = $("#document_approval_page");
+
+    this.logs_table = $("#table-document-logs");
+    this.approval_logs_table = $("#table-document-approval-logs");
+    this.docs_table = $("#all_documents");
+    this.versions_table = $("#doc_versions");
+  },
+
+  initEvents: function(){
+    this.initAllPage();
+    this.initNewPage();
+    this.initEditPage();
+    this.initViewPage();
+    this.initApprovalPage();
+  },
+
+  initAllPage: function(){
+    var self = this;
+    if(self.all_document_page.length > 0){
+      var can_edit_doc = self.all_document_page.attr("data-has-perm");
+      
+
+      if(self.docs_table.length > 0){
+        var columns = [
+            { "sTitle": '<input id="optionsCheckboxAll" type="checkbox" value="all" class="icheck square-blue">',
+              "sWidth": "5%",
+              "bSortable": false,
+              "mData": "id",
+              "mRender": self.renderCheckbox
+            },
+            { "sTitle": "Name",
+              "sWidth": "25%",
+              "bSortable": true,
+              "mData": 'doc_version_url'
+            },
+            { "sTitle": "ID",
+              "sWidth": "10%",
+              "mData": "doc_id"
+            },
+            { "sTitle": "Version",
+              "sWidth": "10%",
+              "bSortable": true,
+              "sClass": "text-center",
+              "mData": "curr_version"
+            },
+            { "sTitle": "Created",
+              "sWidth": "10%",
+              "bSortable": true,
+              "mData": "created_time"
+            },
+            { "sTitle": "Expires",
+              "sWidth": "10%",
+              "bSortable": true,
+              "mData": "expiry"
+            },
+            { "sTitle": "Restrict",
+              "sWidth": "8%",
+              "bSortable": true,
+              "sClass": "text-center",
+              "mData": "restricted",
+              "mRender": self.renderRestrict
+            },
+            { "sTitle": "Category",
+              "sWidth": "16%",
+              "bSortable": true,
+              "mData": "category"
+            }
+          ];
+
+        if(can_edit_doc == "true"){
+          columns.push({ "sTitle": "Action",
+              "sWidth": "6%",
+              "bSortable": false,
+              "sClass": "text-center",
+              "mData": "id",
+              "mRender": self.renderEdit
+            });
+        }
+
+        var empty_text = I18n.t("document.table.no_result");
+        if(self.docs_table.data("search") && (self.docs_table.data("search") + "").length > 0){
+          empty_text = I18n.t("document.table.no_search_result");
+        }
+        var default_order = [[ 1, "asc" ]];
+        if(self.docs_table.data("order-by-ranking") + "" == "true"){
+          default_order = [];
+        }
+
+        self.docs_table.dataTable({
+          sDom: 'rt<"#tbfoot"<"row"<"col col-lg-6"i><"col col-lg-6"p>>>',
+          "bInfo": true,
+          "bProcessing": false,
+          "bServerSide": true,
+          "bAutoWidth": false,
+          "iDisplayLength": self.docs_table.attr("data-per-page"),
+          "order": default_order,
+          "oLanguage": {
+            "sEmptyTable": empty_text,
+          },
+          "aoColumns": columns,
+          "sAjaxSource": "/documents",
+          "fnServerData": function ( sSource, aoData, fnCallback ) {
+            aoData.push({ "name": "filter", "value": $(this).data("filter")});
+            aoData.push({ "name": "search", "value": $(this).data("search")});
+            aoData.push({ "name": "category_id", "value": $(this).data("category_id")});
+            aoData.push({ "name": "types", "value": $(this).data("types")});
+            aoData.push({ "name": "order_by_ranking", "value": $(this).data("order-by-ranking")});
+
+            $.getJSON(sSource, aoData, function (json) {
+              fnCallback(json);
+            });
+          },
+          "fnDrawCallback": function(){
+            $(".dataTables_scrollBody").css("width", "100%");
+            $(".dataTables_scrollHead").css("width", "100%");
+            if(ie < Proceduresync.OLD_IE_VERSION){
+              
+            }else{
+              Icheck.init(self.docs_table);
+            }
+            
+            ProceduresyncTable.checkBoxAllClick(self.docs_table);
+            Proceduresync.show_hide_pagination(self.docs_table);
+            Proceduresync.init_tooltip(self.docs_table);
+
+            var sort = self.docs_table.dataTable().fnSettings().aaSorting;
+            if (sort && typeof sort[0] != "undefined"){
+              self.docs_table.data("order-by-ranking", "false");
+            }
+          }
+        });
+
+        self.initCategorySelect();
+
+        Proceduresync.init_select2_for_field($("#select-actions"));
+
+        $("#select-actions").on("change", function() {
+          var selectBox = document.getElementById("select-actions");
+          var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+          var selected_ids = ProceduresyncTable.getSelectedIds(self.docs_table);
+
+          if(selected_ids.length == 0){
+            $('#select_confirm_modal #confirm_modal').modal('show');
+            $(this).select2('val', 'action');
+            return;
+          }
+
+          if (selectedValue == "documents_assignment") {
+            $('#documents_assignment_modal').modal();
+
+            if($("#documents_assignment_modal").attr("data-has-shown") == "false"){
+              $("#documents_assignment_modal").attr("data-has-shown", "true");
+            }
+
+            Proceduresync.load_company_structure_table($("#documents_assignment_modal"), $("#documents_assignment_modal #paths"));
+
+          }else if (selectedValue == "documents_category") {
+            $('#document_category_modal').modal();
+          }else if (selectedValue == "download_csv") {
+            self.downLoadCSV();
+          }
+
+          $(this).select2('val', 'action');
+        });
+
+        $("#document_category_modal").on("shown.bs.modal", function(){
+          $('#document_category_id').select2("val", "");
+        });
+
+        $("#document_category_modal #submit_update_category").on('click',function(){
+          var selected_ids = "all";
+          var category_id = $('#document_category_id').val();
+          var filter = self.docs_table.data("filter");
+          var filter_category_id = self.docs_table.data("category_id");
+          var document_types = self.docs_table.data("types");
+          var isValid = $('#document_category_form').valid();
+
+          if(!isValid){
+            return;
+          }
+
+          selected_ids = ProceduresyncTable.getSelectedIds(self.docs_table);
+          Proceduresync.show_loading();
+
+          $.ajax($(this).attr("data-url"), {
+            type : "POST",
+            datatype:"json",
+            data : {
+              ids : selected_ids,
+              new_category_id: category_id,
+              filter: filter,
+              search: self.docs_table.data("search"),
+              document_types: document_types,
+              filter_category_id: filter_category_id,
+              order_by_ranking: self.docs_table.data("order-by-ranking")
+            }
+          }).done(function(ev){
+            if(ev.success){
+              self.docs_table.dataTable().fnReloadAjax();
+              $('#document_category_modal').modal('hide');
+              AlertMessage.show("success", ev.message);
+
+              self.update_categories_nav(ev);
+            }else{
+              AlertMessage.show("danger", ev.message);
+            }
+
+            Proceduresync.hide_loading();
+          });
+        });
+
+        /** Documents Assignment **/
+        Proceduresync.init_select2_for_field($("#select-action-type"));
+
+        $("#select-action-type").on("change", function(e) {
+          var selectedValue = this.options[this.selectedIndex].value;
+          var help_text = $(this.options[this.selectedIndex]).attr("data-help-text");
+
+          $(this).closest(".modal-body").find("p.help-text").text(help_text);
+        });
+
+        $("#documents_assignment_modal #submit_update_paths").click(function(e){
+          var assignment_type = $("#select-action-type").select2("val");
+          var paths = $("#documents_assignment_modal #paths").val();
+          var selected_ids = ProceduresyncTable.getSelectedIds(self.docs_table);
+
+          Proceduresync.show_loading();
+
+          $.ajax($(this).attr("data-url"), {
+            type: 'POST',
+            data: {
+              assignment_type: assignment_type,
+              paths: paths,
+              ids: selected_ids,
+              filter: self.docs_table.data("filter"),
+              filter_category_id: self.docs_table.data("category_id"),
+              document_types: self.docs_table.data("types")
+            }
+          }).done(function(ev){
+            if(ev.success == true){
+              $('#documents_assignment_modal').modal('hide');
+              AlertMessage.show("success", ev.message);
+
+              Proceduresync.redirect_to();
+            }else{
+              window.location.reload();
+            }
+
+            Proceduresync.hide_loading();
+          });
+        });
+
+        //Private documents page
+        if(self.docs_table.data("filter") == "private"){
+          self.initPrivateDocumentsPage();
+        }
+
+        /** Action on table **/
+        $(window.document).delegate(".update-doc-name", "click", function(e){
+          e.preventDefault();
+
+          $('#rename_document_modal').modal('show');
+          $('#rename_document_form').attr("action", this.href);
+
+          return false;
+        });
+
+        $('#rename_document_form').submit(function(e){
+          e.preventDefault();
+          $("#rename_document_modal #submit_update_name").trigger("click");
+          return false;
+        });
+
+        $("#rename_document_modal #submit_update_name").on('click',function(){
+          self.editDoc();
+        });
+
+        $("#rename_document_modal").on('hidden.bs.modal', function () {
+          $('#rename_document_name').val("");
+        })
+
+        $(window.document).delegate(".delete-doc", "click", function(e){
+          e.preventDefault();
+
+          $("#delete_confirm_modal #accept").attr("data-url", this.href);
+
+          $('#delete_confirm_modal #confirm_modal').modal('show');
+
+          return false;
+        });
+
+        $("#delete_confirm_modal #accept").on('click',function(e){
+          self.delDoc();
+        });
+      }
+    }
+  },
+
+  initPrivateDocumentsPage: function(){
+    var self = this;
+    var private_doc_form = $("form#create_private_document");
+
+    if(private_doc_form.length > 0){
+      self.formValidation(private_doc_form);
+
+      this.initUploadDocumentFile();
+
+      private_doc_form.submit(function(){
+        if($(this).valid()){
+          Proceduresync.show_loading();
+        }else{
+          return false;
+        }
+      });
+    }
+  },
+
+  initNewPage: function(){
+    var self = this;
+
+    if(self.new_document_page.length > 0){
+      if($("form#new_document").length > 0){
+        self.formValidation();
+      }
+
+      $("form#new_document").submit(function(){
+        if($(this).valid()){
+          Proceduresync.show_loading();
+        }else{
+          return false;
+        }
+      });
+
+      self.initFormElements();
+    }
+  },
+
+  initEditPage: function(){
+    var self = this;
+
+    if(self.edit_document_page.length > 0){
+      $("form#edit_document").submit(function(){
+        if($(this).valid()){
+          Proceduresync.show_loading();
+        }else{
+          return false;
+        }
+      });
+
+      self.initFormElements();
+
+      self.formValidation($("form#edit_document"));
+
+      /** Logs **/
+      Proceduresync.init_logs_table(self.logs_table);
+    }
+  },
+
+  initViewPage: function(){
+    var self = this;
+
+    if(self.view_document_page.length > 0){
+
+      self.init_box_view(self.view_document_page);
+      
+      // view document
+      if($('#accountability_modal').length > 0){
+        $("#accountability_modal #accept").click(function(){
+          doc_id = $(this).data("doc-id");
+          var success_url = $(this).attr("data-success-url");
+          Proceduresync.show_loading();
+
+          $.ajax($(this).attr("data-action-url"), {
+            type: 'POST',
+            data: {}
+          }).done(function(ev){
+            if(ev.success){
+              $('#accountability_modal').modal('hide');
+              $('#accountability_modal').on('hidden.bs.modal', function () {
+                $(this).remove();
+              });
+
+              AlertMessage.show("success", ev.message);
+              
+              Proceduresync.redirect_to(success_url);
+            }else{
+              AlertMessage.show("danger", ev.message);
+            }
+            
+            Proceduresync.hide_loading();
+          });
+        });
+
+        $("#accountability_modal #cancel").click(function(e){
+          $('#accountability_modal').modal('hide');
+        });
+      }
+
+      /** favourite doc **/
+      $("#favourite-btn").click(function(e){
+        e.preventDefault();
+
+        self.favourite_document($(this));
+      });
+    }
+  },
+
+  initApprovalPage: function(){
+    var self = this;
+    if(self.approval_document_page.length > 0){
+      self.initFormElements();
+
+      self.init_box_view(self.approval_document_page);
+
+      Proceduresync.init_select2_for_field($("#approve_document_to"));
+
+      $("#approve_document_to").on("change", function() {
+        var selectedValue = this.options[this.selectedIndex].value;
+
+        if (selectedValue == "approve_selected_areas") {
+          $(".approve-document-to").removeClass("hidden");
+          $(".approve-document-to").next().css("padding", "0");
+        }else{
+          $(".approve-document-to").addClass("hidden");
+          $(".approve-document-to").next().css("padding", "50px 0");
+        }
+      });
+
+      $("form#approve_document").submit(function(e){
+        e.preventDefault();
+        if($(this).valid()){
+          self.approveDocument(this);
+        }
+        return false;
+      });
+
+      /** Logs **/
+      Proceduresync.init_logs_table(self.logs_table);
+
+      /** Approval Logs **/
+      Proceduresync.init_logs_table(self.approval_logs_table);
+      
+    }
+  },
+
+  initUploadDocumentFile: function(){
+    var self = this;
+
+    self.hide_file_input_on_ie();
+
+    $("#fileselect_tmp").filestyle({buttonName: "btn-primary", buttonText: "Browse", input: false, badge: false});
+
+    $('#document-file-s3-uploader').S3Uploader({ 
+      remove_completed_progress_bar: true,
+      allow_multiple_files: true,
+      progress_bar_target: $('#uploads_container'),
+      before_add: function(file){
+        /*$("#document-file-s3-uploader #uploads_container .upload").remove();*/
+        /** 
+        * Note: This callback will not run in IE
+        **/
+        var valid = true;
+        var valid_mine_types = ["application/pdf", "application/msword", 
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
+          "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ];
+
+        if(valid_mine_types.indexOf(file.type) > -1 || /(\.|\/)(pdf|xls|xlsx|doc|docx|ppt|pptx|txt)$/i.test(file.name)){
+          valid = true;
+        }else{
+          alert("Only accepts Word, Excel, Power Point and PDF files.");
+          valid = false;
+        }
+
+        if(valid && file.size > 104857600){
+          alert("File size can't larger than 100MB.");
+          valid = false;
+        }
+
+        return valid;
+      },
+      callback_set_fileinfo: self.change_file_event
+    });
+
+    $('#document-file-s3-uploader').bind('s3_uploads_start', function(e, content, data) {
+      Proceduresync.show_loading();
+
+      Document.disable_submit_btn($("#submit_document_btn"));
+      Document.disable_submit_btn($("#upload_private_doc"));
+      if( ie < Proceduresync.OLD_IE_VERSION){
+        self.update_file_upload_status("Uploading...");
+      }else{
+        self.update_file_upload_status("");
+      }
+    });
+
+    $('#document-file-s3-uploader').bind('s3_upload_failed', function(e, content) {
+      Proceduresync.hide_loading();
+      alert(content.filename + ' failed to upload');
+
+      Document.enable_submit_btn($("#submit_document_btn"));
+      Document.enable_submit_btn($("#upload_private_doc"));
+      self.update_file_upload_status("Failed");
+    });
+
+    $('#document-file-s3-uploader').bind('s3_upload_complete', function(e, content) {
+      $("#document_version_file_url").val(content.url);
+
+      Document.enable_submit_btn($("#submit_document_btn"));
+      Document.enable_submit_btn($("#upload_private_doc"));
+
+      Proceduresync.hide_loading();
+
+      if($("form#create_private_document").length > 0){
+        $("form#create_private_document").submit();
+      }else{
+        self.update_file_upload_status("Uploaded");
+      }
+    });
+
+    $("#fileselect_tmp").bind('click', function (e) {
+      $("#fileselect").click();
+      e.preventDefault();
+      return false;
+    });
+  },
+
+  /**
+  * Init box view for document
+  **/
+  init_box_view: function(parent_div){
+    var self = this;
+
+    if(ie < Proceduresync.OLD_IE_VERSION){
+     self.init_box_view_for_ie8(parent_div);
+     return;
+    }
+
+    var pdf_view = parent_div.find(".pdf-viewer");
+    if(pdf_view.length == 0){
+      return;
+    }
+
+    parent_div.find(".pdf-viewer-ie8").remove();
+    var url = pdf_view.attr("data-url");
+
+    var viewer = Crocodoc.createViewer('.pdf-viewer', {
+      url: url,
+      layout: Crocodoc.LAYOUT_VERTICAL_SINGLE_COLUMN 
+    });
+
+    viewer.load();
+
+    viewer.on("pagefocus", function(event){
+      if(event.data.page == event.data.numPages){
+        $("#mark-as-read-area").css("display", "block");
+      }else{
+        $("#mark-as-read-area").css("display", "none");
+      }
+    });
+
+    $("#zoom-in-btn").click(function(event){
+      event.preventDefault();
+
+      viewer.zoom(Crocodoc.ZOOM_IN);
+
+      return false;
+    });
+
+    $("#zoom-out-btn").click(function(event){
+      event.preventDefault();
+
+      viewer.zoom(Crocodoc.ZOOM_OUT);
+
+      return false;
+    });
+
+    //set height of Box-View
+    if(self.approval_document_page.length > 0){
+      viewer.on("ready", function(event){
+        $(".pdf-viewer").height($(".crocodoc-page").height() + 10);
+      });
+    }else{
+      var view = Proceduresync.getViewPort();
+      var total_top = Proceduresync.get_top_height();
+      $(".pdf-viewer").height(view.height - total_top - 20);
+
+      viewer.on("ready", function(event){
+        self.append_mark_as_read_area();
+      });
+    }
+
+    $(".crocodoc-viewport").niceScroll({
+      cursorcolor: "#357ebd"
+    });
+  },
+
+  /**
+  * Init box view for document
+  **/
+  init_box_view_for_ie8: function(parent_div){
+    var self = this;
+
+    var pdf_view = parent_div.find(".pdf-viewer-ie8");
+    if(pdf_view.length == 0){
+      return;
+    }
+
+    parent_div.find(".pdf-viewer").remove();
+    $("#mark-as-read-area").css("display", "block");
+    self.append_mark_as_read_area();
+
+    //set height of Box-View
+    var view = Proceduresync.getViewPort();
+    var total_top = Proceduresync.get_top_height();
+    $(".pdf-viewer-ie8").height(view.height - total_top - 20);
+  },
+
+  /**
+  * Append mark as read area at the bottom of crocodoc-doc
+  **/
+  append_mark_as_read_area: function(){
+    var btn = $("#mark-as-read-area");
+
+    if($(".crocodoc-viewer-logo").length > 0){
+      btn.insertBefore($(".crocodoc-viewer-logo"));
+    }else{
+      btn.insertAfter($(".pdf-panel"));
+    }
+
+    $("#mark-as-read-area").click(function(e){
+      e.preventDefault();
+
+      var success_url = $(this).attr("data-success-url");
+      Proceduresync.show_loading();
+
+      $.ajax($(this).attr("data-action-url"), {
+        type: 'POST',
+        data: {}
+      }).done(function(ev){
+        if(ev.success){
+          $(this).remove();
+
+          AlertMessage.show("success", ev.message);
+          
+          Proceduresync.redirect_to(success_url);
+        }else{
+          AlertMessage.show("danger", ev.message);
+        }
+        
+        Proceduresync.hide_loading();
+      });
+    });
+  },
+
+  initCategorySelect: function(){
+
+    // init category select2
+    $("#document_category_id").select2({
+      placeholder: "Choose a Category",
+      formatNoMatches: function(term) {
+        if(term){
+          return '<a href="javscript:void(0);" id="addNewCategory" onclick="Document.createCategory(\''+term+'\');"> Add \''+term+'\' category</a>';
+        }else{
+          return 'No category found. Please type to add new category';
+        }
+      }
+    });
+
+    // init category select2
+    $("#category_id").select2({
+      placeholder: "Choose a Category",
+      formatNoMatches: function(term) {
+        if(term){
+          return '<a href="javscript:void(0);" id="addNewCategory" onclick="Document.createCategory(\''+term+'\');"> Add \''+term+'\' category</a>';
+        }else{
+          return 'No category found. Please type to add new category';
+        }
+      }
+    });
+    
+    $("#document_category_id").removeAttr("title");
+    $("#category_id").removeAttr("title");
+  },
+
+  initFormElements: function(){
+    var self = this;
+    
+    // init datetimepicker
+    $('#document_start_time').datetimepicker({
+      defaultDate: new Date(),
+      direction: 'bottom'
+    });
+
+    $('#document_start_time').on("dp.change", function(e){
+      $('#document_expiry').data("DateTimePicker").setMinDate(e.date);
+      $('#document_effective_time').data("DateTimePicker").setMinDate(e.date);
+    });
+
+    $('#document_effective_time').datetimepicker({
+      defaultDate: new Date(),
+      direction: 'bottom'
+    });
+
+    $('#document_effective_time').on("dp.change", function(e){
+      $('#document_expiry').data("DateTimePicker").setMinDate(e.date);
+    });
+
+    $('#document_expiry').datetimepicker({
+      minDate: new Date(),
+      direction: 'bottom'
+    });
+
+    $('#document_expiry').on("dp.change", function(e){
+      $('#document_start_time').data("DateTimePicker").setMaxDate(e.date);
+    });
+
+    this.initCategorySelect();
+
+    /** Edit category name **/
+    var edit_category_modal = $("#edit_category_modal");
+    if(typeof $("#document_category_id").attr("disabled") == "undefined"){
+      $("#edit-category-name").click(function(e){
+        e.preventDefault();
+
+        edit_category_modal.find("#category_id").select2("val", "");
+        edit_category_modal.find("#category_name").val("");
+        edit_category_modal.modal("show");
+
+        return false;
+      });
+
+      $(window.document).delegate("#edit_category_modal #category_id", "change", function(e){
+        var selected_cate = this.options[this.selectedIndex].text;
+        
+        edit_category_modal.find("#category_name").val(selected_cate);
+      });
+
+      edit_category_modal.find("form").submit(function(e){
+        e.preventDefault();
+
+        var form = $(this);
+        if(form.valid()){
+          self.editCategory($(this));
+        }
+
+        return false;
+      });
+    }else{
+      $("#edit-category-name").remove();
+    }
+
+    //Assign document table
+    //Company.init_table_organisation($(".table-organisation"), $("#document_belongs_to_paths"));
+    Proceduresync.load_company_structure_table($("#div_belongs_to_paths"), $("#document_belongs_to_paths"));
+
+    this.initVersionsTable();
+
+    this.initUploadDocumentFile();
+
+    var assign_document_for = $("select#assign_document_for");
+    if(assign_document_for.length > 0){
+      Proceduresync.init_select2_for_field(assign_document_for);
+    }
+
+    /** Restricted **/
+    var option_restricted_to_areas = $("#assign_document_for option[value='restricted']");
+
+    /** private method for show/hide restricted areas options **/
+    function show_hide_restricted_paths(restricted){
+      var prev_value = assign_document_for.val();
+      option_restricted_to_areas.remove();
+      assign_document_for.closest(".panel").find(".select2").remove();
+
+      var option_data_text_key = "data-text";
+
+      if(restricted){
+        option_restricted_to_areas.appendTo(assign_document_for);
+        option_data_text_key = "data-text-when-restricted";
+      }else{
+        option_restricted_to_areas.remove();
+      }
+
+      $.each(assign_document_for.find("option"), function(index, option){
+        $(option).text($(option).attr(option_data_text_key));
+      });
+
+      Proceduresync.init_select2_for_field(assign_document_for);
+
+      if(prev_value == "restricted" && !restricted){
+        assign_document_for.select2("val", "approval");
+      }else {
+        assign_document_for.select2("val", prev_value);
+      }
+    }
+
+    $("#document_restricted").on('ifToggled', function(e){
+      show_hide_restricted_paths(this.checked);
+    });
+
+    show_hide_restricted_paths($("#document_restricted")[0].checked);
+  },
+
+  /**
+  * Hide file input in upload doc section
+  **/
+  hide_file_input_on_ie: function(){
+    if( ie < Proceduresync.OLD_IE_VERSION){
+      var file_field = $("input[id='fileselect']");
+      var old_style = file_field.attr("style");
+
+      file_field.attr("style", "clip: rect(0px,0px,0px,0px);" + old_style);
+
+      $("#file-info #tip-text").text("");
+    }else{
+      $("#file-info").closest(".panel-body").show();
+    }
+  },
+
+  change_file_event: function(file_name, file_size){
+    var self = this;
+
+    if(typeof file_name == "undefined"){
+      file_name = $("#fileselect").val();
+    }
+
+    if(typeof file_size == "undefined"){
+      file_size = 0.0;
+    }
+
+    file_name = Proceduresync.getFileName(file_name, true);
+
+    $("#document_version_file_name").val(file_name);
+
+    $("#file-info").closest(".panel-body").show();
+    $("#file-info #file-name").text(file_name);
+    $("#file-info #tip-text").hide();
+    $("#file-info #file-name").show();
+
+    $("#document_version_file_size").val(file_size);
+
+    if($("#document_title").val() == ''){
+      $("#document_title").val(file_name);
+    }
+  },
+
+  update_file_upload_status: function(status){
+    $("#file-upload-status").html(status);
+  },
+
+  upload_document_callback: function(){
+    $("#file-info #file-name").text("");
+    $("#file-info #tip-text").show();
+    $("#file-info #file-name").hide();
+    this.update_file_upload_status("");
+
+    /** remove current file **/
+    $("#document_version_file_url").val("");
+    $("#document_version_file_name").val("");
+    $("#document_version_file_size").val(0.0);
+
+    if( ie < Proceduresync.OLD_IE_VERSION ){
+      $("#file-info").closest(".panel-body").hide();
+    }
+  },
+
+  disable_submit_btn: function(btn){
+    btn.addClass("disabled");
+    btn.attr("title", "You can not submit while Document is uploading");
+    btn.attr("data-toggle", "tooltip");
+    btn.attr("data-placement", "bottom");
+    btn.tooltip();
+  },
+
+  enable_submit_btn: function(btn){
+    btn.removeClass("disabled");
+    btn.attr("title", "");
+    btn.tooltip("destroy");
+  },
+
+  initVersionsTable: function(){
+    var self = this;
+    var table_versions = $('#doc_versions');
+    // document versions
+    if(self.versions_table.length > 0){
+      self.versions_table.dataTable({
+        sDom: 'rt<"#tbfoot"<"row"<"col col-lg-12">>>',
+        "bInfo": true,
+        "bProcessing": false,
+        "bServerSide": true,
+        "bAutoWidth": false,
+        "aaSorting": [[ 0, "desc" ]],
+        "aoColumns": [
+          { "sTitle": "Timestamp",
+            'bSortable': false,
+            "sClass": "left",
+            "sWidth": "35%",
+            "mData": "date"
+          },
+          { "sTitle": "Version",
+            'bSortable': false,
+            "sClass": "center",
+            "sWidth": "5%",
+            "mData": "version",
+          },
+          { "sTitle": "",
+            'bSortable': false,
+            "sClass": "left",
+            "sWidth": "65%",
+            "mData": 'action',
+            "mRender": function(data){
+              pdf_download = '';
+              read = '';
+              if(data["box_show"]){
+                read = "<a href='"+data["version_url"]+"' target='blank'>Read </a> | "
+                pdf_download = " | <a href='"+data["pdf_url"]+"' target='blank'> Download PDF</a>";
+              }
+              return "<span class='pull-left'>"+read+"<a href='"+data["origin_url"] +"' class='right-border' target='blank'> Download Original </a>"+pdf_download+"</span>";
+            }
+          }
+        ],
+        "sAjaxSource": self.versions_table.attr("data-url"),
+        "fnDrawCallback": function(){
+          $(".dataTables_scrollBody").css("width", "100%");
+          $(".dataTables_scrollHead").css("width", "100%");
+
+          Proceduresync.show_hide_pagination(self.versions_table);
+        }
+      });
+    }
+  },
+
+  initDataTable: function(){
+    var self = this;
+
+    $('#table-basic').dataTable({
+        sDom: 'rt<"#tbfoot"<"row"<"col col-lg-12"p>>>',
+        "iDisplayLength":10
+    });
+    
+    $("th.first.sorting_asc").removeClass("sorting_asc");
+  },
+
+  downLoadCSV: function(){
+    var self = this;
+    Proceduresync.show_loading();
+
+    filter = self.docs_table.data("filter");
+    sort = self.docs_table.dataTable().fnSettings().aaSorting;
+    sort_column = (sort && sort[0]) ? sort[0][0] : 1;
+    sort_dir = (sort && sort[0]) ? sort[0][1] : "asc";
+    selected_ids = ProceduresyncTable.getSelectedIds(self.docs_table);
+    search = self.docs_table.data("search");
+    
+    $.fileDownload("/documents/export_csv.csv", {
+      httpMethod: "POST",
+      data: {
+        filter: filter,
+        sort_column: sort_column,
+        sort_dir : sort_dir,
+        search: search,
+        ids : selected_ids,
+        filter_category_id: self.docs_table.data("category_id"),
+        document_types: self.docs_table.data("types"),
+        order_by_ranking: self.docs_table.data("order-by-ranking")
+      }
+    })
+
+    Proceduresync.hide_loading();
+
+  },
+
+  renderCheckbox: function(data){
+    if($('#optionsCheckboxAll').length > 0){
+      $('#optionsCheckboxAll')[0].checked = false;
+    }
+    return '<input class="icheck square-blue"  name="optionsCheckbox" type="checkbox" value="'+data+'">';
+  },
+
+  renderRestrict: function(data){
+    if(data){
+      return '<li class="fa fa-lock"></li>';
+    }else{
+      return '<li class="fa fa-unlock"></li>';
+    }
+  },
+
+  renderEdit: function(data, type, full){
+    var editString = "";
+    if(full.show_edit_btn){
+      editString = '<a href="'+full.doc_url+'/edit" class="text-muted"><i class="fa fa-pencil-square-o fa-lg"></i></a>';  
+    }
+    
+    var delString = '';
+    var approveString = "";
+    
+    if(full.is_private){
+      editString = '<a href="'+full.doc_url+'/update_name" class="text-muted left-5 update-doc-name"><i class="fa fa-pencil-square-o fa-lg"></i></a>';
+      delString = '<a href="'+full.doc_url+'" class="text-muted left-5 delete-doc"><i class="fa fa-trash-o fa-lg"></i></a>';
+    }
+
+    if(full.show_approve_btn){
+      approveString = '<a href="'+full.to_approve_url+'" class="text-muted left-5 to-approve-doc"><i class="fa fa-thumbs-up fa-lg"></i></a>';
+    }
+
+    return editString + delString + approveString;
+  },
+
+  editDoc: function(){
+    var self = this;
+
+    var form = $("#rename_document_form");
+    var url = form.attr("action");
+    var name = $('#rename_document_name').val();
+
+    var isValid = form.valid();
+    if(!isValid){
+      return;
+    }
+
+    Proceduresync.show_loading();
+
+    $.ajax({
+      type : "POST",
+      data : {
+        title: name
+      },
+      beforeSend : function(xhr) {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
+      url : url,
+      success : function(data) {
+        if(data.success){
+          self.docs_table.dataTable().fnReloadAjax();
+          $('#rename_document_modal').modal('hide');
+
+          AlertMessage.show("success", data.message);
+        }else{
+          AlertMessage.show("danger", data.message);
+        }
+
+        Proceduresync.hide_loading();
+      }
+    });
+  },
+
+  delDoc: function(id){
+    var self = this;
+    var url = $("#delete_confirm_modal #accept").attr("data-url");
+
+    Proceduresync.show_loading();
+    $.ajax({
+      type : "DELETE",
+      beforeSend : function(xhr) {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
+      url : url,
+      success : function(data) {
+        if(data.success){
+          self.docs_table.dataTable().fnReloadAjax();
+
+          AlertMessage.show("success", data.message);
+          $('#delete_confirm_modal #confirm_modal').modal('hide');
+        }else{
+          AlertMessage.show("danger", data.message);
+        }
+
+        Proceduresync.hide_loading();
+      }
+    });
+  },
+
+  createCategory: function(name){
+    var self = this;
+    Proceduresync.show_loading();
+
+    $.ajax("/documents/create_category", {
+      type: 'POST',
+      data: {
+        category: {name: name}
+      }
+    }).done(function(ev){
+      if(ev.success){
+        self.updateCategoriesList(ev);
+      }else{
+        alert(ev.message);
+        window.location.reload();
+      }
+
+      Proceduresync.hide_loading();
+    });
+  },
+
+  /**
+  * Edit Category
+  **/
+  editCategory: function(form){
+    var self = this;
+    var modal = form.closest(".modal");
+    var msg_div = modal.find("#modal-alert-msg");
+    Proceduresync.show_loading();
+
+    var data = {};
+    $.each(form.serializeArray(), function(index, obj){ data[obj["name"]] = obj["value"] });
+
+    /** current category in Document form **/
+    data["document_category_id"] = $("#document_category_id").select2("val");
+
+    $.ajax(form.attr("action"), {
+      type: 'POST',
+      data: data
+    }).done(function(ev){
+      if(ev.success){
+        AlertMessage.show("success", ev.message);
+
+        self.updateCategoriesList(ev);
+
+        $("#edit_category_modal").modal("hide");
+      }else{
+        AlertMessage.show("danger", ev.message, msg_div);
+      }
+
+      Proceduresync.hide_loading();
+    });
+  },
+
+  /**
+  * Update categories when create/update name of a category
+  **/
+  updateCategoriesList: function(ev){
+    var self = this;
+
+    /** Categories in Document form/Update Documents Category **/
+    var form_group = $('#document_category_id').closest(".form-group");
+    $("#document_category_id").select2('close');
+    form_group.find(".select2").remove();
+    $(ev.categories).appendTo(form_group);
+
+    /** Categories in Edit Category modal **/
+    if(ev.categories_modal){
+      var form_group_in_modal = $('#category_id').closest(".form-group");
+      $("#category_id").select2('close');
+      form_group_in_modal.find(".select2").remove();
+      $(ev.categories_modal).appendTo(form_group_in_modal);
+    }
+
+    self.initCategorySelect();
+    self.update_categories_nav(ev);
+  },
+
+  formValidation: function(form){
+    if(typeof form == "undefined"){
+      form = $("form#new_document");
+    }
+
+    var rules = {
+      "document[title]": {
+        required: true
+      },
+      "document[created_time]": {
+        required: true
+      }
+    };
+
+    if(form.attr("data-private") != "true"){
+      rules["document[category_id]"] = {
+        required: true
+      };
+    }
+
+    var doc_settings = form.attr("data-doc-settings");
+    if(doc_settings.indexOf("doc_id") > -1){
+      rules["document[doc_id]"] = {
+        required: true
+      }
+    }
+
+    if(doc_settings.indexOf("expiry") > -1){
+      rules["document[expiry]"] = {
+        required: true
+      }
+    }
+
+    if(doc_settings.indexOf("version") > -1){
+      rules["version[version]"] = {
+        required: true
+      }
+    }
+
+    form.validate({
+        highlight: function (element) {
+            jQuery(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+        },
+        success: function (element) {
+            jQuery(element).closest('.form-group').removeClass('has-error');
+        },
+        rules: rules,
+        errorElement: 'span',
+        errorClass: 'help-block jq-validate-error',
+        errorPlacement: function (error, element) {
+            if (element.parent('.input-group').length) {
+                error.insertAfter(element.parent());
+            } else if (element.prop('type') === 'checkbox') {
+                error.appendTo(element.closest('.checkbox').parent());
+            } else if (element.prop('type') === 'radio') {
+                error.appendTo(element.closest('.radio').parent());
+            }
+            else {
+                error.insertAfter(element);
+            }
+        }
+    });
+  },
+
+  search: function(){
+    var self = this;
+    if(self.all_document_page.length > 0 && self.docs_table.length > 0){
+      self.docs_table.dataTable().fnReloadAjax();
+    }
+  },
+
+  approveDocument: function(form){
+    var self = this;
+    Proceduresync.show_loading();
+
+    var data = {};
+    $.each($(form).serializeArray(), function(index, obj){ data[obj["name"]] = obj["value"] });
+
+    $.ajax(form.action, {
+      type: 'POST',
+      data: data
+    }).done(function(ev){
+      if(ev.success){
+        AlertMessage.show("success", ev.message);
+
+        Proceduresync.redirect_to(ev.success_url);
+
+        if(ev.version_changed){
+          self.reload_versions_table();
+        }
+      }else{
+        AlertMessage.show("danger", ev.message);
+
+        if(ev.window_reload){
+          Proceduresync.redirect_to();
+        }
+      }
+
+      Proceduresync.hide_loading();
+    });
+  },
+
+  /**
+  * Update accountable/all categories nav in the left with newest accountable/all categories for current user
+  **/
+  update_categories_nav: function(data){
+
+    function update_nav(nav, html){
+      var data_index = nav.find("ul.nav-sub").attr("data-index");
+      var style = nav.find("ul.nav-sub").attr("style");
+      nav.find("ul.nav-sub").remove();
+
+      $(html).appendTo(nav);
+
+      nav.find("ul.nav-sub").attr("data-index", data_index);
+      nav.find("ul.nav-sub").attr("style", style);
+    }
+
+    if(data.accountable_categories_nav){
+      update_nav($("#accountable_categories_nav"), data.accountable_categories_nav);
+    }
+
+    if(data.all_categories_nav){
+      update_nav($("#all_categories_nav"), data.all_categories_nav); 
+    }
+  },
+
+  /**
+  * reload Versions table
+  **/
+  reload_versions_table: function(){
+    if(this.versions_table.length > 0){
+      this.versions_table.dataTable().fnReloadAjax();
+    }
+  },
+
+  /**
+  * Favourite a Document
+  **/
+  favourite_document: function(btn){
+    var self = this;
+    var type = $(btn).find('.fa').hasClass("fa-star-o") ? "favourite" : "unfavourite";
+
+    Proceduresync.show_loading();
+
+    $.ajax($(btn).attr("href"), {
+      type: 'POST',
+      data: {
+        type: type
+      }
+    }).done(function(ev){
+      if(ev.success){
+        AlertMessage.show("success", ev.message);
+        var new_title = (type == "favourite") ? $(btn).attr("data-unfavourite-text") : $(btn).attr("data-favourite-text");
+
+        if(type == "favourite"){
+          $(btn).find('.fa').removeClass("fa-star-o").addClass("fa-star");
+        }else{
+          $(btn).find('.fa').removeClass("fa-star").addClass("fa-star-o");
+        }
+
+        $(btn).tooltip('hide').attr('data-original-title', new_title).tooltip('fixTitle').tooltip('show');
+
+        // var badge_html = $("nav#left_nav_items").find("li.favourite .badge-number");
+
+        // if(ev.new_unread_num == "0"){
+        //   badge_html.remove();
+        // }else{
+        //   if(badge_html.length == 0){
+        //     badge_html = '<span class="badge-number label label-danger pull-right">' + ev.new_unread_num + '</span>';
+        //     $(badge_html).appendTo($("nav#left_nav_items").find("li.favourite a"));
+        //   }else{
+        //     badge_html.html(ev.new_unread_num);
+        //   }
+        // }
+      }else{
+        AlertMessage.show("danger", ev.message);
+      }
+      
+      Proceduresync.hide_loading();
+    });
+  }
+}
+
+
+$(function() {
+  Document.init();
+});

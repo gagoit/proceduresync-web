@@ -1,0 +1,8 @@
+- if PermissionService.can_make_document_restricted(current_user, current_company)
+  .panel.panel-default
+    .panel-heading
+      %h4 Restrict to these Areas
+      Select which areas you would like to restrict this document. Click the section names to expand.
+
+    .panel-body
+      = render :partial => "shared/company_structure_table", :locals => {company_table_structure: company_structure(current_company), current_paths: document.restricted_paths, expanded: true, table_id: "table-restricted-paths"}

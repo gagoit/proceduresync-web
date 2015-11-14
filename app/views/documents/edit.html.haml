@@ -1,0 +1,31 @@
+.page-content{id: "document_edit_page"}
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li
+        %a{:href => documents_path} Documents
+      %li.bread-text
+        = @document.title
+      %li.active
+        Edit
+
+  = render :partial => "shared/messages"
+
+  - if @can_add_edit_doc
+    .container-fluid-md
+      = render "upload_document", {is_private: false}
+  
+  = form_for(@document, format: :js, mutipart: true, remote: true,  html: {role: "form", id: "edit_document", :'data-private' => @document.is_private, :'data-doc-settings' => current_company.document_settings.join(",")}) do |form|
+    .container-fluid-md
+      .row
+        .col-lg-6
+          = render "document_attributes", f: form, submit_text: "Submit"
+          = render "document_versions", document: form.object
+        .col-lg-6
+          = render "document_permissions", document: form.object, can_add_edit_doc: @can_add_edit_doc
+          = render "document_logs", {document: form.object}
+
+  = render "double_confirm_modal"
+  = render "edit_category", categories: current_company.categories
+
+:javascript
+  var g_editDocumentPath = "#{edit_document_path(@document.id)}";

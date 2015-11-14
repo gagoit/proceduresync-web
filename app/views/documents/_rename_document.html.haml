@@ -1,0 +1,18 @@
+#rename_document_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
+  .modal-dialog.resized-1
+    .modal-content
+      .modal-header
+        %h3 Rename document
+      .modal-body
+        #term_conditions
+          .container
+            .panel-default
+              .panel-body.panel-e
+                %form#rename_document_form
+                  %h4.text-primary Name
+                  .form-group
+                    = text_field_tag :title, '',:placeholder => "Document Name", class: "form-control", id: "rename_document_name", required: true
+              .text-center
+                %button.btn.btn-primary.btn-submit-modal#submit_update_name{:type => "submit"} Submit
+                %a.underline-a-modal.text-muted{"data-dismiss" => "modal", :href => "javascript:;"}
+                  %h5 Cancel

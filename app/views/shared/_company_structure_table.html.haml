@@ -1,0 +1,27 @@
+.table-responsive
+  %table.table.table-bordered.table-organisation{"data-company-name" => current_company.name, id: (local_assigns[:table_id] || "table-organisation-id"), "data-expanded" => local_assigns[:expanded].to_s}
+    %tr
+      %th.org-node-header.company-header{"data-node-type" => "division"}
+        = current_company.name
+      %th.org-node-header.division-header.not-visible{"data-node-type" => "department"}
+        
+      %th.org-node-header.department-header.not-visible{"data-node-type" => "group"}
+        
+      %th.org-node-header.group-headernot-visible.not-visible{"data-node-type" => "depot"}
+        
+      %th.org-node-header.depot-header.not-visible{"data-node-type" => "panel"}
+        
+    %tr
+      - company_table_structure.each_with_index do |node_type, index|
+        %td.org-node{"data-node-type" => node_type[:type], class: "#{node_type[:parent_type]}-childs #{index > 0 ? 'not-visible' : ''}", "data-parent-type" => node_type[:parent_type]}
+
+          - node_type[:children].each do |node|
+            - checked = current_paths.include?(node[:path])
+            - has_child = (node[:child_ids].length > 0)
+            - editable = editable_paths.include?(node[:path])
+
+            %span.text-muted.visible{:'data-uid' => node[:id] }
+              %h5
+                %input.icheck.minimal-blue{id: "node_#{node[:id]}", type: "checkbox", :'data-path' => node[:path], :'data-uid' => node[:id], checked: checked, :'data-has-child' => has_child.to_s, disabled: !editable}
+                %a.edit-name{class: "#{has_child ? 'has_child' : 'has_no_child'}"}
+                  = node[:title]

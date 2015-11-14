@@ -1,0 +1,555 @@
+#term_conditions {
+	.text-center {
+		padding-top: 15px;
+	}
+}
+
+.font-9{
+	font-size: 9px;
+}
+/*Body*/
+body{
+	background-color: #e2e6e9;
+}
+
+#alert-msg {
+	padding-left: 25px;
+	padding-right: 25px;
+}
+
+/*Navigation
+.navbar-default{
+	background-color: #eef1f4;
+}*/
+
+/*BreadCrum*/
+.page-subheading {
+	line-height: auto !important;
+	background-color: #eef1f4;
+}
+.page-subheading li{
+	line-height: 17px !important;
+}
+
+/*Modal Bootstrap */
+.modal-800{
+	width: 800px !important;
+}
+
+.modal-400{
+	width: 400px !important;
+}
+.modal-dialog {
+  /*padding-top: 9%;*/
+  display: inline-block;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.modal{
+	text-align: center;
+}
+
+.modal:before{
+	display: inline-block;
+	vertical-align: middle;
+	content: " ";
+	height: 100%;
+}
+
+/*#password_reset_modal.modal:before{
+	display: none;
+	vertical-align: middle;
+	content: " ";
+	height: 100%;
+}*/
+
+/*Panel*/
+.panel-default>.panel-heading, .panel-default>form>.panel-heading {
+	background-color: #eef1f4;
+}
+
+/*Custome upload logo button Company Info screen*/
+.center-lbl{
+	width: 102px;
+	padding-top: 3px;
+}
+
+.left-border{
+	border-left:1px solid #ddd;
+}
+
+.margin-bottom-5{
+	margin-bottom: 5px;
+}
+
+p.title{
+	/*font-size: 18px;*/
+	color: #357ebd;
+	font-weight: bold;
+	margin-top: 5%;
+}
+p.info{
+	/*background-color: #A2B5CD;*/
+	color: white;
+	margin-top: 1%;
+}
+div.title{
+	font-weight: bold;
+	color: #2a6395;
+	font-size: 250%;
+	padding-top: 2%;
+}
+img.logo-title{
+	width: 15%;
+	margin-right: 3%;
+}
+p.panel-e{
+	background-color: #9FB6CD;
+	padding: 5px 0 5px 15px;
+}
+
+#term_condition_button {
+	background-color: #D2D6DA;
+	text-align: right;
+	border-radius: 0px;
+	color: #3576BE;
+	border: 0px;
+	font-size: 16px;
+	padding-bottom: 5px;
+	padding-top: 5px;
+}
+
+/*#mark_at_read_modal {
+	text-align: center;
+	margin: 150px 4% 0 4%;
+}*/
+
+/*#password_reset_modal {
+	text-align: center;
+	margin: 180px 4% 0 4%;
+}*/
+
+/*#password_reset_modal .modal-content, #password_reset_modal button{
+	background-color: #EBEBEB;
+}*/
+
+.panel.panel-default.form-container {
+	margin-top: 80px;
+}
+
+.setup_info {
+	background-color: #BBC9D8;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+
+@media only screen and (max-width : 500px) {
+	.modal-dialog {
+		width: 95%;
+	}
+
+}
+
+@media only screen and (min-width : 500px) and (max-width : 768px) {
+	.modal-dialog {
+		width: 95%;
+	}
+
+	#term_conditions .panel.panel-default.form-container {
+		max-width: 100%;
+	}
+
+/*	#mark_at_read_modal {
+		text-align: center;
+		margin: 150px 26% 0 26%;
+	}
+*/
+	/*#password_reset_modal {
+		text-align: center;
+		margin: 180px 26% 0 26%;
+	}*/
+}
+
+@media only screen and (min-width : 769px) and (max-width : 992px) {
+	.modal-dialog {
+		width: 30%;
+	}
+
+	#term_conditions .panel.panel-default.form-container {
+		max-width: 100%;
+	}
+
+
+}
+
+@media only screen and (min-width : 993px) and (max-width : 1200px) {
+	.modal-dialog {
+		width: 30%;
+	}
+
+	#term_conditions .container {
+		width: 1000px;
+	}
+
+	#term_conditions .panel.panel-default.form-container {
+		max-width: 100%;
+		margin-top: 20px;
+	}
+
+/*	#mark_at_read_modal {
+		text-align: center;
+		margin: 150px 4% 0 4%;
+	}*/
+
+	/*#password_reset_modal {
+		text-align: center;
+		margin: 180px 4% 0 4%;
+	}*/
+
+
+}
+
+@media only screen and (min-width : 993px) and (max-width : 1200px) {
+	#term_conditions .container {
+		width: 1050px;
+	}
+
+	.modal-dialog {
+		width: 30%;
+	}
+}
+
+@media only screen and (min-width : 1201px) and (max-width : 1300px) {
+	#term_conditions .container {
+		width: 1200px;
+	}
+}
+
+@media only screen and (min-width : 1301px) and (max-width : 1500px) {
+	#term_conditions .container {
+		width: 1300px;
+	}
+
+	.modal-dialog {
+		width: 25%;
+	}
+}
+
+@media only screen and (min-width : 1501px) and (max-width : 1700px) {
+	.modal-dialog {
+		width: 20%;
+	}
+}
+
+@media only screen and (min-width : 1701px) {
+	.modal-dialog {
+		width: 20%;
+	}
+}
+
+#term_conditions img.logo-title{
+	width: 4%;
+	margin-right: 1%;
+}
+
+@media only screen and (min-width : 800px) {
+	#term_conditions .container {
+		width: 100%;
+		padding: 0 0 0 0;
+	}
+
+	#term_conditions .panel.panel-default.form-container {
+			max-width: 100%;
+			margin-top: 20px;
+	}
+
+	#term_conditions img.logo-title{
+		width: 2%;
+		margin-right: 1%;
+	}
+}
+
+
+.large-icon{
+	font-size: 29px;
+}
+.dropdown-menu .divider{
+	height: 2px;
+}
+.panel-body h5, .panel-body small, .panel-heading h4{
+	margin:0;
+}/*
+a:hover.bg-danger{
+	background-color:#d95043 !important;
+}*/
+.page-wrapper{
+	position: static !important;
+}
+.sidebar{
+	padding-top: 55px !important;
+}
+
+
+.doc-icon{
+	width: 25px;
+	height: 30px;
+	margin-right: 9px;
+}
+.doc-icon-right{
+	width: 26px;
+	height: 26px;
+}
+.navbar-brand.hidden-xxs{
+	height: 100%;
+}
+@media (min-width: 768px){
+	.navbar .navbar-brand-group{
+		width: 255px;
+	}
+	img.logo-rio{
+		height: 24px;
+		margin: 8px 8px 8px 0px;
+	}
+	.navbar .navbar-brand-group .navbar-brand{
+		border-right: none;
+	}
+}
+@media (max-width: 800px){
+	img.logo-rio{
+		width: 50%;
+	}
+	.navbar-brand.hidden-xxs{
+		text-align: left;
+		width: 30%;
+	}
+	.navbar .navbar-brand{
+		height: 30px;
+	}
+}
+.breadcrumb li, .panel-title-doc{
+	max-width: 500px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.panel-title-doc{
+	max-width: 100%;
+	line-height: 22px;
+}
+
+.breadcrumb li.bread-text {
+	color: #88888f;
+	height: 17px;
+}
+
+a.help-icon{
+	color: black;
+}
+
+.btn-custom{
+	text-align: right;
+}
+.pdf-viewer, .pdf-viewer-ie8{
+	width: 100%;
+	min-height: 80%;
+	position: inherit;
+}
+.underline-a{
+	text-decoration: underline;
+	margin-left: 5px;
+	padding-top: 10px;
+}
+
+#filedrag{
+	/*display: none;*/
+	font-weight: bold;
+	text-align: center;
+	margin: 5px;
+	padding: 5px;
+	/*padding: 1em 0;
+	margin: 1em 0;*/
+	color: #555;
+	border: 2px dashed #555;
+	border-radius: 7px;
+	cursor: default;
+}
+.well{
+	margin-bottom: 0px;
+	padding: 10px;
+}
+a:hover>.fa.fa-pencil-square-o{
+	color: #357ebd;
+}
+
+.panel-action{
+	padding-right: 0px;
+	padding-left: 0px;
+}
+label.panel-action>h3{
+	margin-top: 5px;
+	margin-bottom: 0px;
+}
+.space-bottom{
+	margin-bottom: 5px !important;
+}
+.panel-action#select-box{
+	margin-bottom: 10px;
+}
+
+.panel-action {
+	a.underline-a {
+		padding-top: 7px;
+	}
+}
+
+
+.upload-logo{
+	margin-top: 5px;
+}
+/*.cancel{
+	margin-top: 10px;
+}*/
+@-moz-document url-prefix() {
+	.pdf-viewer, .pdf-viewer-ie8{
+	width: 98%;
+	height: 95%;
+	position: inherit;
+	background: transparent asset-url("loading.gif") no-repeat center;
+	padding-left:2%;
+	}
+	.pdf-panel{
+		height: 900px;
+	}
+}
+
+.underline-a-modal{
+	text-decoration: underline;
+	margin-left: 5px;
+	display: inline-block;
+}
+
+.buttons-group-footer {
+	margin-top: 10px;
+}
+
+.scrollable {
+	overflow-y: auto;
+	max-height: 450px;
+}
+.btn-submit-modal {
+	width:90px;
+}
+
+.modal-body .panel-body.panel-e {
+	padding-top: 0px
+}
+
+.select2-container.form-control.form-select2 {
+	width: 96%;
+}
+
+.modal-dialog.resized-1 {
+	width: 350px;
+}
+
+.modal-dialog.resized-2 {
+	width: 700px;
+}
+
+.modal-dialog.resized-3 {
+	width: 430px;
+}
+
+.modal-dialog.resized-4 {
+	width: 400px;
+}
+
+.modal-dialog.auto-width {
+	/* width: auto; */
+}
+
+.modal-header {
+	/*padding-top: 4px;*/
+	h3 {
+		margin-top: 0;
+	}
+}
+
+.modal-body {
+	padding-top: 5px;
+	padding-bottom: 18px;
+}
+
+.spacing-bottom {
+	margin-bottom: 10px;
+}
+
+.fit-area {
+	width: 103px;
+}
+
+#tbfoot {
+	.row {
+		margin-right: 0 !important;
+		margin-left: 0 !important;
+	}
+	.row .col:first-child {
+		line-height: 30px;
+	}
+
+	.row .pagination {
+		margin: 0 !important;
+	}
+}
+
+#dashboard_page {
+	.panel .table-responsive {
+		max-height: 500px;
+	}
+
+	.left-column, .right-column {
+		padding: 0;
+	}
+}
+
+.bootbox.modal{
+	.modal-body {
+		padding: 20px;
+	}
+}
+
+.panel .panel-heading h4.link-face {
+	cursor: pointer;
+
+	&:hover {
+		color: #357ebd;
+		text-decoration: underline;
+	}
+}
+
+.my-loading {
+	background: #fbfbfb asset-url("plugins/jquery.dynatree-1.2.5-all/loading.gif");
+	float: right;
+	height: 17px;
+	width: 17px;
+}
+
+.panel-metric-sm .metric-content .value {
+	font-size: 17px !important;
+}
+
+/** Dashboard **/
+a.list-group-item {
+	&.has-no-perm {
+    cursor: default;
+	}
+}
+
+.areas-has-no-accountable-docs {
+	h5.list-group-item-heading {
+		min-height: 30px;
+		line-height: 17px;
+	}
+}

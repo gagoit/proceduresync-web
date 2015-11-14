@@ -1,0 +1,7 @@
+%li{class: (item[:active] ? "#{item[:code]} active" : "#{item[:code]}")}
+  %a{:href => item[:path]}
+    %i.fa.fa-fw.fa-lg{class: item[:icon]}
+    = item[:title]
+    - if item[:unread_number] && item[:unread_number] > 0
+      %span{class: "badge-number label label-danger pull-right"}
+        = number_with_delimiter(item[:unread_number])

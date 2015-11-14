@@ -1,0 +1,6 @@
+- items = right_nav_items(current_user, current_company)
+- items.keys.each do |key|
+  - item = items[key]
+  - next unless item[:show]
+  %li
+    = link_to item[:title], item[:path]

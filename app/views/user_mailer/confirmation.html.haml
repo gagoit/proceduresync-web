@@ -1,0 +1,13 @@
+%p Welcome #{@user.name}.
+
+%p Your organisation has signed you up to Proceduresync™.
+
+%p Your temporary password is: #{@password} and you can sign into the App through this #{link_to "link", signin_url(email: @user.email, password: @password)}.
+
+%p You will receive another email shortly with more detail about your user account. We recommend you read that email and view the training package relating to your user account before using the Proceduresync system.
+
+%p Should you have any questions or would like assistance please visit our support section at #{link_to 'www.proceduresync.com', 'www.proceduresync.com'}.
+
+%p Kind regards,
+%p The Proceduresync™ Team
+%p This email (including all attachments) are the sole property of Proceduresync™ Pty Ltd and may be confidential. If you are not the intended recipient, you must not use or forward the information contained in it. This message may not be reproduced or otherwise republished without the written consent of the sender. If you have received this message in error, please delete the e-mail and notify the sender.

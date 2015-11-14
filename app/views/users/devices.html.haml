@@ -1,0 +1,19 @@
+.page-content#user_devices_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} #{t("user.devices.title")}
+
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            %h4
+              = t("user.devices.title")
+            
+          .panel-body.scroll-panel
+            .table-responsive
+              %table#table-user-devices.table.table-striped{:width => "100%", :'data-url' => devices_user_path(@user), "data-is-owner" => (current_user.id == @user.id).to_s}

@@ -1,0 +1,18 @@
+.page-content#company_logs_page
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} Logs
+
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            %h4 Logs
+            Logs can be filtered by the search
+          .panel-body.scroll-panel
+            .table-responsive
+              %table#table-company-logs.table.table-striped{:width => "100%", :'data-url' => logs_company_path(current_company), :'data-per-page' => 100, :'data-search' => params[:search]}

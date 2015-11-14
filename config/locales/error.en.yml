@@ -1,0 +1,6 @@
+en:
+  error:
+    not_found: Resource was not found
+    access_denied: You are not authorized to access this resource
+    bad_request: Unable to process; Invalid request
+    routing_fail: Application Error; Route not found.

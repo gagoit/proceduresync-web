@@ -1,0 +1,13 @@
+.div{class: "col-lg-#{div_length}"}
+  .panel.panel-metric.panel-metric-sm
+    .panel-body.panel-body-default
+      .metric-content.metric-icon
+        - private_size = private_folder_size(current_user, current_company)
+        .value
+          #{number_with_precision(private_size[:percent], strip_insignificant_zeros: true)}% used
+          %br
+          (#{private_size[:remain_mb]}Mb remain)
+        .icon
+          %i.fa.fa-hdd-o
+        %header
+          %h4 Private Folder Usage

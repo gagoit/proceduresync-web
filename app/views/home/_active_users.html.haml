@@ -1,0 +1,10 @@
+.div{class: "col-lg-#{div_length}"}
+  .panel.panel-metric.panel-metric-sm
+    .panel-body.panel-body-default
+      .metric-content.metric-icon
+        .value
+          = number_with_precision(current_company.users.active.count, strip_insignificant_zeros: true)
+        .icon
+          %i.fa.fa-users
+        %header
+          %h4 Total Active Users

@@ -1,0 +1,8 @@
+%ul.nav-sub{"data-index" => "1", :style => "display: none;"}
+  - cates = UserService.all_document_categories(current_user, current_company)
+  - cates.each do |cate|
+    - next if (cate[0].blank? || cate[1].blank?)
+    %li{:'data-uid' => cate[0]}
+      %a{:href => documents_path(category_id: cate[0], types: "all")}
+        %i.fa.fa-fw.fa-caret-right
+        = cate[1]

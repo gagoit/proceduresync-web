@@ -1,0 +1,22 @@
+- comp_admin_attentions = current_company.admin_attentions
+- if current_company.show_admin_attentions && comp_admin_attentions.length > 0
+  - all_paths = current_company.all_paths_hash
+  .col-lg-12.dashboard-panel
+    .panel.panel-default
+      .panel-heading
+        %h4 Attention
+      .table-responsive
+        %table.table.table-bordered
+          %tbody
+            %tr
+              %td
+                .list-group.margin-sm
+                  - comp_admin_attentions.order([:created_at, :desc]).pluck(:lastest_type, :all_path_ids, :created_at).each do |aa|
+                    %a.list-group-item.has-no-perm{:href => "javascript:;"}
+                      %i.fa.fa-warning.pull-left.large-icon
+                      %h5.list-group-item-heading 
+                        = current_company["#{aa[0]}_label".to_sym]
+                        %strong #{all_paths[aa[1]]}
+                        does not have an Approver.
+                      %small.list-group-item-text #{BaseService.time_formated(current_company, aa[2])}
+                  
