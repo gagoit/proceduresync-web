@@ -48,6 +48,51 @@ var Dashboard = {
         window.location = url;
       }
     });
+
+    $(window.document).delegate(".load-more-user-unread-docs", "click touchend", function(e){
+      var link = $(this);
+      var user_name = link.attr("data-name");
+      var modal = $('#show_unread_docs_modal #confirm_modal');
+
+      function show_unread_docs(unread_docs){
+        var html = "<ul style='max-height: 350px; overflow: auto; list-style-type: none; padding-left: 0;'>";
+
+        $.each(unread_docs, function( index, title ) {
+          html += "<li>" + title + "</li>";
+        });
+
+        html += "</ul>";
+        
+        modal.find(".modal-header h3").text(user_name + " Outstanding Documents");
+        modal.find(".panel-body.panel-e").html(html);
+
+        modal.modal('show');
+      }
+
+      if(link.data("unread_docs")){
+        show_unread_docs(link.data("unread_docs"));
+      }else{
+        Proceduresync.show_loading();
+
+        $.ajax(link.attr("data-url"), {
+          type: 'GET',
+          data: {
+            get_array: true
+          }
+        }).done(function(ev){
+          if(ev.success == true){
+            link.data("unread_docs", ev.unread_docs);
+
+            show_unread_docs(ev.unread_docs);
+          }else{
+            AlertMessage.show("danger", ev.message);
+          }
+          Proceduresync.hide_loading();
+        });
+      }
+
+      return false;
+    });
   },
 
   /**

@@ -265,7 +265,10 @@ class UsersController < ApplicationController
 
     unread_docs, total_count = Document.get_all(@user, current_company, {page: nil, per_page: nil, search: "", sort_by: [:title, :asc], filter: "unread"})
 
-    render json: {success: true, unread_docs: unread_docs.pluck(:title).join(", ")}, status: :ok
+    data_return = {success: true}
+    data_return[:unread_docs] = params[:get_array] ? unread_docs.pluck(:title) : unread_docs.pluck(:title).join(", ")
+
+    render json: data_return, status: :ok
   end
 
   ##

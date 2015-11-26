@@ -18,6 +18,12 @@
 
                   %input#paths{:name => "paths", :type => "hidden", :value => "[]"}
 
+                .form-group
+                  %label
+                    = check_box_tag :select_all_sections, '1', false , class: "icheck square-blue"
+                    %label.control-label{for: "select_all_sections"}
+                      = t("document.bulk_assignment.select_all_sections")
+
                 %p.help-text
                   = t("document.bulk_assignment.action.add_accountability.help_text")
 

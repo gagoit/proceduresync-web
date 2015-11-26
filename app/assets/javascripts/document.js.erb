@@ -267,6 +267,17 @@ var Document = {
           });
         });
 
+        // select_all_sections
+        var checkbox_event = ( ie < Proceduresync.OLD_IE_VERSION ) ? "click" : "ifClicked";
+        $("#documents_assignment_modal").delegate("#select_all_sections", checkbox_event, function(e){
+
+          if(this.checked){
+            Company.uncheck_all_table_organisation($("#documents_assignment_modal"));
+          }else{
+            Company.check_all_table_organisation($("#documents_assignment_modal"));
+          }
+        });
+
         //Private documents page
         if(self.docs_table.data("filter") == "private"){
           self.initPrivateDocumentsPage();

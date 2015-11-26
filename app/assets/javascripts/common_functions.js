@@ -470,6 +470,17 @@ var ProceduresyncCheckbox = {
     }
       
     return $(checkbox).closest("div").hasClass("mixed");
+  },
+
+  /**
+  * Check checkbox has status disabled
+  **/
+  is_disabled: function(checkbox){
+    if( ie < Proceduresync.OLD_IE_VERSION ){
+      return $(checkbox).closest("div.div-for-checkbox").hasClass("disabled");
+    }
+      
+    return $(checkbox).closest("div").hasClass("disabled");
   }
 }
 

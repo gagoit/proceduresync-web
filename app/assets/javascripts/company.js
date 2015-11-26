@@ -742,6 +742,50 @@ var Company = {
     table.find("td.org-node.visible").each(function(i, node){
       $(node).find("span.visible:even h5").css('background-color', '#eff3f4');
     });
+  },
+
+  /**
+  * Check all table organisation
+  **/
+  check_all_table_organisation: function(table){
+    var checkbox_event = ( ie < Proceduresync.OLD_IE_VERSION ) ? "click" : "ifClicked";
+    var last_td = table.find("td:last");
+    var last_nodes;
+
+    while(last_td.length > 0){
+      last_nodes = last_td.find("input.icheck");
+      
+      last_nodes.each(function(index, child){
+        
+        if(!child.checked && !ProceduresyncCheckbox.is_disabled(child)){
+          $(child).trigger(checkbox_event);
+        }
+      });
+
+      last_td = last_td.prev();
+    }
+  },
+
+  /**
+  * unCheck all table organisation
+  **/
+  uncheck_all_table_organisation: function(table){
+    var checkbox_event = ( ie < Proceduresync.OLD_IE_VERSION ) ? "click" : "ifClicked";
+    var last_td = table.find("td:last");
+    var last_nodes;
+
+    while(last_td.length > 0){
+      last_nodes = last_td.find("input.icheck");
+      
+      last_nodes.each(function(index, child){
+        
+        if(child.checked && !ProceduresyncCheckbox.is_disabled(child)){
+          $(child).trigger(checkbox_event);
+        }
+      });
+
+      last_td = last_td.prev();
+    }
   }
 }
 

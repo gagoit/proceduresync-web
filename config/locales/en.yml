@@ -279,6 +279,7 @@ en:
     bulk_assignment:
       title: "Documents Assignment"
       description: "Here you can bulk assign many documents to a different part of the organisation"
+      select_all_sections: "Select all sections you approve for"
       action:
         title: Action
         add_accountability:
