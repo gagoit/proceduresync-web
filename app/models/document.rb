@@ -960,6 +960,6 @@ class Document
   end
 
   def self.approval_expiration_time
-    Time.now.advance(days: -30).utc
+    Time.now.advance(days: -14).utc
   end
 end
