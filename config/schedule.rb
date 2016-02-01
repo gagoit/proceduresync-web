@@ -51,6 +51,6 @@ every '30 20 15 * *' do
   runner "ReportService.auto_emailed_reports('fortnightly')"
 end
 
-every 1.minutes do
+every 1.hours do
   rake "update_not_accountable_paths"
 end

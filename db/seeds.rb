@@ -603,5 +603,7 @@ end
 
 ## Dec 5, 2015:
 ## Update not_accountable_by_ids not_accountable_for
-Document.where(not_accountable_by_ids: nil, not_accountable_for: nil).update_all(not_accountable_by_ids: [], not_accountable_for: [])
+Document.where(not_accountable_by_ids: nil, not_accountable_for: nil).each do |doc|
+  Document.where(:_id => doc.id).update_all(not_accountable_by_ids: [], not_accountable_for: [], updated_at: doc.updated_at.utc)
+end
 
