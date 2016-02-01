@@ -23,6 +23,7 @@ class PermissionService < BaseService
     update_org_node: :organisation_structure,
     load_childs_of_org_node: :organisation_structure,
     preview_company_structure: :organisation_structure,
+    replicate_accountable_documents: :organisation_structure,
 
     create_category: :create,
     update_category: :update,
@@ -393,8 +394,7 @@ class PermissionService < BaseService
 
     u_comp ||= current_user.user_company(comp, true)
 
-    u_comp["is_approver"] && !document.approved_by?(current_user) && 
-      ((u_comp["approver_path_ids"] & document.not_approved_paths).length > 0)
+    document.can_approve_by?(current_user, u_comp )
   end
 
   ##

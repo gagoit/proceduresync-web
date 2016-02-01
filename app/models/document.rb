@@ -51,8 +51,19 @@ class Document
 
   # The parts of organisation that document is not approved for
   # It will be equal [] if this document doesn't need to be approved
-  # and approved_paths + not_approved_paths = belongs_to_paths
+  # and approved_paths + not_approved_paths + not_accountable_for = belongs_to_paths
   field :not_approved_paths, type: Array, default: []
+
+  # The parts of organisation that document has been set as not accountable by an approver
+  # It will be equal [] if this document doesn't need to be approved
+  # and approved_paths & not_accountable_for = []
+  # and not_accountable_for is small set of belongs_to_paths
+  field :not_accountable_for, type: Array, default: []
+  field :not_accountable_by_ids, type: Array, default: []
+
+  # The last time that document has been set as not accountable by an approver
+  field :time_set_as_not_accountable, type: Time
+  field :process_approval_expiration, type: Boolean, default: false
 
   has_many :versions, order: [:created_at, :desc]
 
@@ -195,10 +206,16 @@ class Document
 
     self.approved_paths ||= []
     self.belongs_to_paths ||= []
+    self.not_accountable_for ||= []
 
     #check and remove invalid approved paths (that belongs to paths not include)
     self.approved_paths = (self.approved_paths & self.belongs_to_paths)
     self.not_approved_paths = self.belongs_to_paths - self.approved_paths
+
+    self.not_accountable_for = (self.not_accountable_for & self.belongs_to_paths)
+    self.not_accountable_for -= self.approved_paths
+
+    self.not_approved_paths -= self.not_accountable_for
   end
 
   after_save do
@@ -336,10 +353,23 @@ class Document
   end
 
   ##
+  # Check document can approve by user or not
+  ##
+  def can_approve_by?(current_user, u_comp = nil)
+    u_comp ||= current_user.user_company(company, true)
+
+    need_approval && u_comp["is_approver"] && (
+        ( (u_comp["approver_path_ids"] & not_approved_paths).length > 0 && !approved_by?(current_user) ) ||
+        ( !(not_accountable_by_ids || []).include?(current_user.try(:id)) && (u_comp["approver_path_ids"] & (not_accountable_for || [])).length > 0 && 
+            time_set_as_not_accountable && time_set_as_not_accountable.utc >= Document.approval_expiration_time )
+      )
+  end
+
+  ##
   # Approver approve document
   ##
   def approve!(current_user, current_company, permit_params, params)
-    if approved_by?(current_user)
+    if !can_approve_by?(current_user)
       result = { success: false,  message: I18n.t("document.approve.error.already_approved")}
     else
       doc_params = permit_params
@@ -372,7 +402,10 @@ class Document
         new_not_approved_areas = can_approved_for
 
         doc_params[:approved_paths] = self.approved_paths - new_not_approved_areas
-
+        doc_params[:not_accountable_for] = ((self.not_accountable_for || []) + new_not_approved_areas).uniq
+        doc_params[:time_set_as_not_accountable] = Time.now.utc
+        doc_params[:process_approval_expiration] = false
+        doc_params[:not_accountable_by_ids] = ((self.not_accountable_by_ids || []) + [current_user.id]).uniq
       end
 
       doc_params[:approved_paths].uniq!
@@ -643,7 +676,7 @@ class Document
   ##
   # Format Documents for Datatable
   ##
-  def self.documents_for_datatable(user, company, documents, total_count = nil)
+  def self.documents_for_datatable(user, company, documents, total_count = nil, filter = "all")
     total_count = (total_count || (documents.total_count rescue documents.length))
     return_data = {
       "aaData" => [],
@@ -676,10 +709,12 @@ class Document
         show_edit_btn: can_add_edit_doc
       }
 
-      if !company.is_standard? && u_comp["is_approver"] && 
-        (u_comp["approver_path_ids"] & document.not_approved_paths).length > 0 && 
-        !document.approved_by?(user)
-
+      if !company.is_standard? && u_comp["is_approver"] && (
+          ((u_comp["approver_path_ids"] & document.not_approved_paths).length > 0 && !document.approved_by?(user)) ||
+          ( filter == "to_approve" && (u_comp["approver_path_ids"] & (document.not_accountable_for || [])).length > 0 && 
+              document.time_set_as_not_accountable && document.time_set_as_not_accountable.utc >= Document.approval_expiration_time )
+        )
+        
         data[:show_approve_btn] = true
         data[:doc_version_url] = ActionController::Base.helpers.link_to(document.title, data[:to_approve_url])
       end
@@ -922,5 +957,9 @@ class Document
     else 
       doc_obj
     end
+  end
+
+  def self.approval_expiration_time
+    Time.now.advance(days: -30).utc
   end
 end

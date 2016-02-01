@@ -179,6 +179,69 @@ describe "User: docs:" do
       expect(new_docs[:docs].count).to eq(1)
       expect(new_docs[:docs].first.id).to eq(@doc.id)
     end
+
+    it "when user is approver, has one doc in his org part and he's already approved it, but there was another approver set this doc as not-accountable for the ares that user can approve for => user will see this doc" do
+      @doc.belongs_to_paths = @all_paths.keys
+      @doc.save
+
+      @doc1.destroy
+
+      u_comp = @user.user_company(@company)
+      perm = @company.permissions.where(code: Permission::STANDARD_PERMISSIONS[:approver_user][:code]).first
+
+      u_comp.company_path_ids = @all_paths.keys.first
+      u_comp.permission_id = perm.id
+      u_comp.approver_path_ids = @doc.belongs_to_paths
+      u_comp.save
+
+      @user.reload
+
+      new_docs = @user.docs(@company, "to_approve")
+
+      expect(new_docs[:docs].count).to eq(1)
+      expect(new_docs[:docs].first.id).to eq(@doc.id)
+
+      @doc.approve!(@user, @company, {}, {document: {curr_version: @doc.curr_version, belongs_to_paths: [@doc.belongs_to_paths.first].to_s, approve_document_to: "approve_selected_areas"}})
+    
+      @doc.reload
+
+      new_docs = @user.docs(@company, "to_approve")
+
+      expect(new_docs[:docs].count).to eq(0)
+
+      # another approver set this doc as not-accountable for the ares that user can approve for
+      @user_1 = create :user, token: "#{@user.token}2", company_ids: [@company.id], admin: false
+      @company.reload
+      u_comp_1 = @user_1.user_company(@company)
+      perm = @company.permissions.where(code: Permission::STANDARD_PERMISSIONS[:approver_user][:code]).first
+
+      u_comp_1.company_path_ids = @all_paths.keys.first
+      u_comp_1.permission_id = perm.id
+      u_comp_1.approver_path_ids = @doc.belongs_to_paths
+      u_comp_1.save
+
+      @user_1.reload
+
+      new_docs = @user_1.docs(@company, "to_approve")
+
+      expect(new_docs[:docs].count).to eq(1)
+      expect(new_docs[:docs].first.id).to eq(@doc.id)
+
+      # After user_1 set this doc as not-accountable for his areas, he can't see this doc in For Approval filter again.
+      @doc.approve!(@user_1, @company, {}, {document: {curr_version: @doc.curr_version, belongs_to_paths: "", approve_document_to: "not_approve"}})
+    
+      @doc.reload
+
+      new_docs = @user_1.docs(@company, "to_approve")
+
+      expect(new_docs[:docs].count).to eq(0)
+
+      # After user_1 set this doc as not-accountable for his areas, user can see this docs in For Approval filter again
+      new_docs = @user.docs(@company, "to_approve")
+
+      expect(new_docs[:docs].count).to eq(1)
+      expect(new_docs[:docs].first.id).to eq(@doc.id)
+    end
   end
 
   context "Advanced Company, search to be approve documents:" do

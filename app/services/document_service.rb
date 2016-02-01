@@ -204,6 +204,17 @@ class DocumentService < BaseService
       BaseService.notify_or_ignore_error(e)
     end
   end
+
+  ##
+  # after expiration time, not_accountable_paths will be removed from not_approved_paths
+  ##
+  def self.update_not_accountable_paths
+    Document.where(:time_set_as_not_accountable.lte => Document.approval_expiration_time, :process_approval_expiration.ne => true).each do |doc|
+      doc.not_approved_paths -= (doc.not_accountable_for || [])
+      doc.process_approval_expiration = true
+      doc.save
+    end
+  end
 end
 
 # ##

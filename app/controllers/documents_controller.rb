@@ -56,7 +56,7 @@ class DocumentsController < ApplicationController
           order_by_ranking: params[:order_by_ranking]
         })
 
-      render :json =>  Document.documents_for_datatable(current_user, current_company, @documents, total_count)
+      render :json =>  Document.documents_for_datatable(current_user, current_company, @documents, total_count, @table[:filter])
       return
     end
 

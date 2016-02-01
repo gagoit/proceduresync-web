@@ -30,7 +30,7 @@ class SaasuService < BaseService
 
     num_users ||= comp.users.active.count
 
-    invoice = comp.invoices.new({month: month, year: year})
+    invoice = comp.invoices.find_or_initialize_by({month: month, year: year})
 
     invoice.active_users_url = users_url
     invoice.num_of_active_users = num_users
@@ -141,6 +141,7 @@ class SaasuService < BaseService
         #store invoice in db
         invoice.invoice_id = body["InsertedEntityId"]
         invoice.invoice_number = body["GeneratedInvoiceNumber"]
+        invoice.success = true
 
         invoice.save
 

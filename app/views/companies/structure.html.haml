@@ -45,6 +45,11 @@
                   %td.org-node.department-childs{"data-node-type" => "group", "data-parent-type" => "department"}
                   %td.org-node.group-childs{"data-node-type" => "depot", "data-parent-type" => "group"}
                   %td.org-node.depot-childs{"data-node-type" => "panel", "data-parent-type" => "depot"}
+  
+    .row
+      .col-lg-12
+        = render :partial => "companies/replicate_accountable_documents"
+
   / Modal Dialog
   #edit_organisation_modal.modal.fade{"aria-hidden" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
     .modal-dialog.resized-4

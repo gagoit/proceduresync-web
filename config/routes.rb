@@ -54,6 +54,8 @@ Proceduresync::Application.routes.draw do
       post :sent_test_notification, defaults: {format: :json}
 
       post :approval_email_settings, defaults: {format: :json}
+
+      get :login_as
     end
 
     collection do
@@ -82,6 +84,8 @@ Proceduresync::Application.routes.draw do
       post :generate_invoice, defaults: {format: :json}
 
       get :load_company_structure_table, defaults: {format: :json}
+
+      put :replicate_accountable_documents, defaults: {format: :json}
     end
   end
 

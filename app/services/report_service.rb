@@ -203,12 +203,13 @@ class ReportService < BaseService
   # Get users who are available in part of organisation
   ##
   def self.report_user_ids_in_part_of_org(user, comp, belongs_to_paths)
-    return comp.users.active.pluck(:id) if user.admin || user.super_help_desk_user
+    if user.admin || user.super_help_desk_user
+    else
+      u_comp ||= user.user_company(comp, true)
 
-    u_comp ||= user.user_company(comp, true)
-
-    u_comp_perm = user.comp_permission(comp, u_comp, true)
-    return [] if u_comp_perm.nil?
+      u_comp_perm = user.comp_permission(comp, u_comp, true)
+      return [] if u_comp_perm.nil?
+    end
 
     areas = belongs_to_paths.is_a?(Array) ? belongs_to_paths : [belongs_to_paths]
 

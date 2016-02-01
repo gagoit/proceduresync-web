@@ -38,13 +38,17 @@ var DeviseSession = {
                 email: self.login_form.find("#user_email").val()
               }
             }).done(function(ev){
-              if(ev.has_logged_in){
-                self.login_page.attr("data-accept", "1");
-                self.login_form.submit();
+              if(ev.success){
+                if(ev.has_logged_in){
+                  self.login_page.attr("data-accept", "1");
+                  self.login_form.submit();
+                }else{
+                  self.terms_and_conditions.modal();
+                  self.terms_and_conditions.find("#do-not-accept").show();
+                  self.terms_and_conditions.find("#accept").show();
+                }
               }else{
-                self.terms_and_conditions.modal();
-                self.terms_and_conditions.find("#do-not-accept").show();
-                self.terms_and_conditions.find("#accept").show();
+                AlertMessage.show("danger", ev.message);
               }
             });
 

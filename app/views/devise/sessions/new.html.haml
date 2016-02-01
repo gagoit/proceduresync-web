@@ -19,6 +19,13 @@
               %label.sr-only{:for => "user_password"} Password
               = f.password_field :password, class: "form-control input-lg", placeholder: "Password", type: "password", :required => "required", "aria-required" => "true", value: params[:password]
 
+            .form-group#remember_me_group
+              %label.sr-only
+              = f.check_box :remember_me, class: "icheck square-blue"
+              = f.label :remember_me, class: "control-label"
+              %p
+                %i #{t("sign_in.remember_me_tip")}
+
             %input.btn.btn-primary.btn-block.btn-lg{type: "submit", value: "SIGN IN"}
 
       .panel-body.text-center

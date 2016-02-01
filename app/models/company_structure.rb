@@ -48,6 +48,8 @@ class CompanyStructure
 
   after_save do
     if name_changed? || type_changed? || path_changed?
+      Rails.cache.delete("/company/#{company.id}-#{company.path_updated_at}/company_paths")
+      
       company.path_updated_at = self.updated_at
 
       if company.lowest_level != type

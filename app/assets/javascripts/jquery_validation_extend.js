@@ -43,3 +43,8 @@ $.validator.addMethod(
     },
     "Please enter Expiry date in the format MM/YYYY."
 );
+
+
+jQuery.validator.addMethod("notEqualTo", function(value, element, params) {  
+  return value != $(params).val();
+}, "Please specify a different value");

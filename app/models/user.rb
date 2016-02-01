@@ -8,7 +8,7 @@ class User
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
-  devise :database_authenticatable, :trackable, :rememberable, :recoverable
+  devise :database_authenticatable, :trackable, :rememberable, :recoverable, :timeoutable
          #:registerable, :validatable
 
   ## Database authenticatable
@@ -718,10 +718,10 @@ class User
       return Document.where(:created_at => nil, :updated_at => nil)
     end
 
-    query = {:not_approved_paths.in => u_comp["approver_path_ids"], 
-      active: true, :approved_by_ids.nin => [self.id]}
-
-    company.documents.public_all.where(query).order(order)
+    company.documents.public_all.active.any_of(
+      {:not_approved_paths.in => u_comp["approver_path_ids"], :approved_by_ids.nin => [self.id]}, 
+      {:not_accountable_by_ids.nin => [self.id], :not_accountable_for.in => u_comp["approver_path_ids"], :time_set_as_not_accountable.gte => Document.approval_expiration_time}
+    ).order(order)
   end
 
   def favourited_doc?(doc)

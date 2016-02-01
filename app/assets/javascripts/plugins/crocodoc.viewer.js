@@ -1,4 +1,4 @@
-/*! Crocodoc Viewer - v0.10.3 | (c) 2014 Box */
+/*! Crocodoc Viewer - v0.10.11 | (c) 2016 Box */
 
 (function (window) {
     /*global jQuery*/
@@ -1114,7 +1114,9 @@ Crocodoc.addDataProvider('page-img', function(scope) {
             }
 
             function abortImage() {
-                img.removeAttribute('src');
+                if (img) {
+                    img.removeAttribute('src');
+                }
             }
 
             // add load and error handlers
@@ -1182,7 +1184,10 @@ Crocodoc.addDataProvider('page-svg', function(scope) {
         subpx = scope.getUtility('subpx'),
         config = scope.getConfig(),
         destroyed = false,
-        cache = {};
+        cache = {},
+        // NOTE: there are cases where the stylesheet link tag will be self-
+        // closing, so check for both cases
+        inlineCSSRegExp = /<xhtml:link[^>]*>(\s*<\/xhtml:link>)?/i;
 
     /**
      * Interpolate CSS text into the SVG text
@@ -1204,7 +1209,7 @@ Crocodoc.addDataProvider('page-svg', function(scope) {
         }
 
         // inline the CSS!
-        text = text.replace(/<xhtml:link[^>]*>/, stylesheetHTML);
+        text = text.replace(inlineCSSRegExp, stylesheetHTML);
 
         return text;
     }
@@ -1732,7 +1737,20 @@ Crocodoc.addUtility('ajax', function (framework) {
             function request() {
                 return ajax.request(url, {
                     success: function () {
+                        var retryAfter,
+                            req;
+
                         if (!aborted) {
+                            req = this.rawRequest;
+                            // check status code for 202
+                            if (this.status === 202 && util.isFn(req.getResponseHeader)) {
+                                // retry the request
+                                retryAfter = parseInt(req.getResponseHeader('retry-after'));
+                                if (retryAfter > 0) {
+                                    setTimeout(request, retryAfter * 1000);
+                                    return;
+                                }
+                            }
                             if (this.responseText) {
                                 $deferred.resolve(this.responseText);
                             } else {
@@ -2267,7 +2285,7 @@ Crocodoc.addUtility('subpx', function (framework) {
             if (!subpixelRenderingIsSupported) {
                 if (document.body.style.zoom !== undefined) {
                     var $wrap = $('<div>').addClass(CSS_CLASS_SUBPX_FIX);
-                    $(el).children().wrapAll($wrap);
+                    $(el).wrap($wrap);
                 }
             }
             return el;
@@ -2631,7 +2649,8 @@ Crocodoc.addComponent('controller-paged', function (scope) {
                 status: getInitialPageStatus(i),
                 enableLinks: config.enableLinks,
                 links: links[i],
-                pageScale: config.pageScale
+                pageScale: config.pageScale,
+                useSVG: config.useSVG
             });
             pages.push(page);
         }
@@ -2646,8 +2665,16 @@ Crocodoc.addComponent('controller-paged', function (scope) {
      */
     function sortPageLinks() {
         var i, len, link,
+            destination,
+            // the starting and ending page *numbers* (not indexes)
+            start = config.pageStart,
+            end = config.pageEnd,
             links = config.metadata.links || [],
             sorted = [];
+
+        // NOTE:
+        // link.pagenum is the page the link resides on
+        // link.destination.pagenum is the page the link links to
 
         for (i = 0, len = config.metadata.numpages; i < len; ++i) {
             sorted[i] = [];
@@ -2655,6 +2682,24 @@ Crocodoc.addComponent('controller-paged', function (scope) {
 
         for (i = 0, len = links.length; i < len; ++i) {
             link = links[i];
+
+            if (link.pagenum < start || link.pagenum > end) {
+                // link page is outside the enabled page range
+                continue;
+            }
+
+            if (link.destination) {
+                destination = link.destination.pagenum;
+
+                if (destination < start || destination > end) {
+                    // destination is outside the enabled page range
+                    continue;
+                } else {
+                    // subtract the number of pages cut off from the beginning
+                    link.destination.pagenum = destination - (start - 1);
+                }
+            }
+
             sorted[link.pagenum - 1].push(link);
         }
 
@@ -2749,8 +2794,11 @@ Crocodoc.addComponent('controller-text', function (scope) {
 
             // we can just load the text immediately
             $promise = scope.get('page-text', 1).then(function (html) {
+                // the viewport could be window in useWindowAsViewport, so get
+                // the real viewport div
+                var $viewport = config.$doc.parent();
                 config.$doc = $(html);
-                config.$viewport.html(config.$doc);
+                $viewport.html(config.$doc);
             });
         },
 
@@ -5117,8 +5165,6 @@ Crocodoc.addComponent('page-img', function (scope) {
                     imageLoaded = true;
                     $img = $(img).appendTo($el);
                 }
-                // always show the image
-                $img.show();
             });
 
             $loadImgPromise.fail(function loadImgFail(error) {
@@ -5132,7 +5178,7 @@ Crocodoc.addComponent('page-img', function (scope) {
         },
 
         /**
-         * Unload (or hide) the img
+         * Unload the img if necessary
          * @returns {void}
          */
         unload: function () {
@@ -5146,8 +5192,6 @@ Crocodoc.addComponent('page-img', function (scope) {
                     $img = null;
                 }
                 imageLoaded = false;
-            } else if ($img) {
-                $img.hide();
             }
         }
     };
@@ -5526,11 +5570,10 @@ Crocodoc.addComponent('page-svg', function (scope) {
                     $loadSVGPromise = null;
                 }
             }
-            // always insert and show the svg el when load was successful
+            // always insert the svg el when load was successful
             if ($svg.parent().length === 0) {
                 $svg.appendTo($svgLayer);
             }
-            $svg.show();
         }
     }
 
@@ -5614,7 +5657,7 @@ Crocodoc.addComponent('page-svg', function (scope) {
         },
 
         /**
-         * Unload (or hide) the SVG object
+         * Unload the SVG object if necessary
          * @returns {void}
          */
         unload: function () {
@@ -5632,9 +5675,6 @@ Crocodoc.addComponent('page-svg', function (scope) {
                     $svg = null;
                 }
                 svgLoaded = false;
-            } else if ($svg) {
-                // just hide the svg element
-                $svg.hide();
             }
         }
     };
@@ -5880,7 +5920,10 @@ Crocodoc.addComponent('page', function (scope) {
 
             config.url = config.url || '';
             pageText = scope.createComponent('page-text');
-            pageContent = support.svg ?
+            if (config.useSVG === undefined) {
+                config.useSVG = true;
+            }
+            pageContent = support.svg && config.useSVG ?
                     scope.createComponent('page-svg') :
                     scope.createComponent('page-img');
 
@@ -6048,14 +6091,30 @@ Crocodoc.addComponent('resizer', function (scope) {
     }
 
     /**
+     * Apply `position: relative` style to the element if necessary
+     * @returns {void}
+     * @private
+     */
+    function fixElementPosition() {
+        var style = util.getComputedStyle(element);
+
+        // if the element is not positioned, add position relative so the
+        // iframe can be positioned properly
+        if (style && style.position === 'static') {
+            $(element).css({ position: 'relative' });
+        }
+    }
+
+    /**
      * Initialize an iframe to fire events on resize
      * @returns {void}
      * @private
      */
     function initResizer() {
-        var $iframe = $('<iframe>'),
+        var $iframe = $('<iframe frameborder="0">'),
             $div = $('<div>');
         $iframe.add($div).css({
+            opacity: 0,
             visiblility: 'hidden',
             position: 'absolute',
             width: '100%',
@@ -6065,9 +6124,7 @@ Crocodoc.addComponent('resizer', function (scope) {
             border: 0
         });
         $iframe.prependTo($div.prependTo(element));
-        if (util.getComputedStyle(element).position === 'static') {
-            $(element).css({ position: 'relative' });
-        }
+        fixElementPosition();
         $window = $($iframe[0].contentWindow);
         $window.on('resize', checkResize);
     }
@@ -6088,6 +6145,8 @@ Crocodoc.addComponent('resizer', function (scope) {
             // layoutchange event
             if (frameWidth === 0 && window.innerWidth !== 0) {
                 frameWidth = window.innerWidth;
+                // fix the element position again if necessary
+                fixElementPosition();
                 scope.broadcast('layoutchange');
                 return;
             }
@@ -6351,7 +6410,7 @@ Crocodoc.addComponent('viewer-base', function (scope) {
         if (browser.ielt9) {
             $el.addClass(CSS_CLASS_IELT9);       //IE7 or IE8?
         }
-        if (support.svg) {
+        if (support.svg && config.useSVG) {
             $el.addClass(CSS_CLASS_SUPPORTS_SVG);
         }
     }
@@ -6611,6 +6670,11 @@ Crocodoc.addComponent('viewer-base', function (scope) {
             // make the url absolute
             config.url = scope.getUtility('url').makeAbsolute(config.url);
 
+            //if useSVG hasn't been set, default to true
+            if (config.useSVG === undefined) {
+                config.useSVG = true;
+            }
+
             validateQueryParams();
             initViewerHTML();
             initPlugins();
@@ -6729,7 +6793,7 @@ Crocodoc.addComponent('viewer-base', function (scope) {
             // load page 1 assets immediately if necessary
             if (config.autoloadFirstPage &&
                 (!config.pageStart || config.pageStart === 1)) {
-                if (support.svg) {
+                if (support.svg && config.useSVG) {
                     $pageOneContentPromise = scope.get('page-svg', 1);
                 } else if (config.conversionIsComplete) {
                     // unfortunately, page-1.png is not necessarily available

@@ -1,0 +1,17 @@
+.panel.panel-default#replicate_accountable_documents
+  .panel-heading
+    %h4 Replicate Accountable Documents
+
+  .panel-body
+    %form#replicate_accountable_documents_form{:'data-url' => replicate_accountable_documents_company_path}
+      .form-group
+        %label.control-label
+          %strong #{t("company.replicate_accountable_documents.form.from_section.title")}
+        = select_tag "from_section", options_for_select(company_paths_for_select(current_user, current_company), ""), class: "form-control select2", placeholder: t("company.replicate_accountable_documents.form.from_section.placeholder"), name: "from_section", id: "from_section"
+
+      .form-group
+        %label.control-label
+          %strong #{t("company.replicate_accountable_documents.form.to_section.title")}
+        = select_tag "to_section", options_for_select(company_paths_for_select(current_user, current_company), ""), class: "form-control select2", placeholder: t("company.replicate_accountable_documents.form.to_section.placeholder"), name: "to_section", id: "to_section"
+
+      %button.btn.btn-primary{type: "submit", value: t("buttons.submit")} #{t("buttons.submit")}

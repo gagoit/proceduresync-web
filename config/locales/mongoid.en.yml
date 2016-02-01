@@ -43,3 +43,4 @@ en:
         permission_id: Permission
         supervisor_path_ids: "Supervisor's Area"
         approver_path_ids: "Approver's Area"
+        remember_me: "Keep me signed in"

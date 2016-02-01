@@ -573,50 +573,55 @@ var Document = {
     parent_div.find(".pdf-viewer-ie8").remove();
     var url = pdf_view.attr("data-url");
 
-    var viewer = Crocodoc.createViewer('.pdf-viewer', {
-      url: url,
-      layout: Crocodoc.LAYOUT_VERTICAL_SINGLE_COLUMN 
-    });
+    try{
 
-    viewer.load();
+      var viewer = Crocodoc.createViewer('.pdf-viewer', {
+        url: url,
+        layout: Crocodoc.LAYOUT_VERTICAL_SINGLE_COLUMN 
+      });
 
-    viewer.on("pagefocus", function(event){
-      if(event.data.page == event.data.numPages){
-        $("#mark-as-read-area").css("display", "block");
+      viewer.load();
+
+      viewer.on("pagefocus", function(event){
+        if(event.data.page == event.data.numPages){
+          $("#mark-as-read-area").css("display", "block");
+        }else{
+          $("#mark-as-read-area").css("display", "none");
+        }
+      });
+
+      $("#zoom-in-btn").click(function(event){
+        event.preventDefault();
+
+        viewer.zoom(Crocodoc.ZOOM_IN);
+
+        return false;
+      });
+
+      $("#zoom-out-btn").click(function(event){
+        event.preventDefault();
+
+        viewer.zoom(Crocodoc.ZOOM_OUT);
+
+        return false;
+      });
+
+      //set height of Box-View
+      if(self.approval_document_page.length > 0){
+        viewer.on("ready", function(event){
+          $(".pdf-viewer").height($(".crocodoc-page").height() + 10);
+        });
       }else{
-        $("#mark-as-read-area").css("display", "none");
+        var view = Proceduresync.getViewPort();
+        var total_top = Proceduresync.get_top_height();
+        $(".pdf-viewer").height(view.height - total_top - 20);
+
+        viewer.on("ready", function(event){
+          self.append_mark_as_read_area();
+        });
       }
-    });
-
-    $("#zoom-in-btn").click(function(event){
-      event.preventDefault();
-
-      viewer.zoom(Crocodoc.ZOOM_IN);
-
-      return false;
-    });
-
-    $("#zoom-out-btn").click(function(event){
-      event.preventDefault();
-
-      viewer.zoom(Crocodoc.ZOOM_OUT);
-
-      return false;
-    });
-
-    //set height of Box-View
-    if(self.approval_document_page.length > 0){
-      viewer.on("ready", function(event){
-        $(".pdf-viewer").height($(".crocodoc-page").height() + 10);
-      });
-    }else{
-      var view = Proceduresync.getViewPort();
-      var total_top = Proceduresync.get_top_height();
-      $(".pdf-viewer").height(view.height - total_top - 20);
-
-      viewer.on("ready", function(event){
-        self.append_mark_as_read_area();
-      });
+    }catch(e){
+      
     }
 
     $(".crocodoc-viewport").niceScroll({

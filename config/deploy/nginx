@@ -51,7 +51,7 @@ server {
     break;
   }
 
-  location ~*  \.(jpg|jpeg|png|gif|ico|css|js)$ {
+  location ~*  \.(jpg|jpeg|png|gif|ico|css)$ {
     expires 365d;
   }
 }

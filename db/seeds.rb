@@ -594,8 +594,14 @@ end
 
 ## Oct 8, 2015:
 ## Update active in user_company
-active_user_ids = User.active.pluck(:id)
+# active_user_ids = User.active.pluck(:id)
 
-UserCompany.where(:user_id.in => active_user_ids).update_all(active: true)
+# UserCompany.where(:user_id.in => active_user_ids).update_all(active: true)
 
-UserCompany.where(:user_id.nin => active_user_ids).update_all(active: false)
+# UserCompany.where(:user_id.nin => active_user_ids).update_all(active: false)
+
+
+## Dec 5, 2015:
+## Update not_accountable_by_ids not_accountable_for
+Document.where(not_accountable_by_ids: nil, not_accountable_for: nil).update_all(not_accountable_by_ids: [], not_accountable_for: [])
+

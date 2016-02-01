@@ -390,6 +390,14 @@ en:
         download_invoice_pdf: "Download Invoice PDF"
         download_users_csv: "Download Users CSV"
 
+    replicate_accountable_documents:
+      form:
+        from_section:
+          title: "From Section"
+          placeholder: "Select Section"
+        to_section:
+          title: "To Section"
+          placeholder: "Select Section"
 
   permission:
     add_edit_documents: "Add / Edit Documents"
@@ -545,3 +553,6 @@ en:
     terms_and_conditions: "Terms & Conditions"
     privacy_policy: "Privacy Policy"
     website_terms_of_use: "Website Terms Of Use"
+
+  sign_in:
+    remember_me_tip: "*Not recommended on shared/public computers"

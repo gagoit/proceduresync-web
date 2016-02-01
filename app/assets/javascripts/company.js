@@ -49,6 +49,9 @@ var Company = {
 
         self.update_name_of_org_node(id, name, type);
       });
+
+      /** Replicate Accountable Documents **/
+      self.init_replicate_accountable_documents();
     }
 
     /** Logs **/
@@ -253,6 +256,8 @@ var Company = {
         self.edit_organisation_modal.modal("hide");
         
         AlertMessage.show("success", ev.message);
+
+        self.reload_replicate_accountable_documents_section(ev.new_replicate_accountable_documents_html);
       }else{
         AlertMessage.show("danger", ev.message);
       }
@@ -297,6 +302,8 @@ var Company = {
         input.val("");
 
         AlertMessage.show("success", ev.message);
+
+        self.reload_replicate_accountable_documents_section(ev.new_replicate_accountable_documents_html);
       }else{
         AlertMessage.show("danger", ev.message);
       }
@@ -786,6 +793,90 @@ var Company = {
 
       last_td = last_td.prev();
     }
+  },
+
+  init_replicate_accountable_documents: function(){
+    var self = this;
+    var form = self.company_structure_page.find("#replicate_accountable_documents_form");
+
+    Proceduresync.init_select2(form);
+
+    self.replicate_accountable_documents_form_validation();
+
+    form.submit(function(){
+      if($(this).valid()){
+        Proceduresync.show_loading();
+
+        $.ajax(form.attr("data-url"), {
+          type: 'PUT',
+          data: {
+            from_section: form.find("#from_section").select2("val"),
+            to_section: form.find("#to_section").select2("val")
+          }
+        }).done(function(ev){
+          if(ev.success == true){
+            AlertMessage.show("success", ev.message);
+          }else{
+            AlertMessage.show("danger", ev.message);
+            window.location.reload();
+          }
+
+          Proceduresync.hide_loading();
+        });
+      }
+
+      return false;
+    });
+  },
+
+  replicate_accountable_documents_form_validation: function(){
+    this.company_structure_page.find("#replicate_accountable_documents_form").validate({
+      highlight: function (element) {
+          jQuery(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+      },
+      success: function (element) {
+          jQuery(element).closest('.form-group').removeClass('has-error');
+      },
+      rules: {
+        "from_section": {
+          required: true
+        },
+        "to_section": {
+          notEqualTo: "#from_section",
+          required: true
+        }
+      },
+      messages: {
+        "to_section": {
+          notEqualTo: "Please select a different section"
+        }
+      },
+      errorElement: 'span',
+      errorClass: 'help-block jq-validate-error',
+      errorPlacement: function (error, element) {
+        if (element.parent('.input-group').length) {
+          error.insertAfter(element.parent());
+        }else {
+          error.insertAfter(element);
+        }
+      }
+    });
+  },
+
+  reload_replicate_accountable_documents_section: function(new_html){
+    var self = this;
+    var replicate_accountable_documents = self.company_structure_page.find("#replicate_accountable_documents");
+
+    var from_section = replicate_accountable_documents.find("#from_section").select2("val");
+    var to_section = replicate_accountable_documents.find("#to_section").select2("val");
+
+    var parent = replicate_accountable_documents.parent();
+    replicate_accountable_documents.remove();
+    parent.html(new_html);
+
+    self.init_replicate_accountable_documents();
+    $("#from_section").select2("val", from_section);
+    $("#to_section").select2("val", to_section);
   }
 }
 

@@ -247,7 +247,7 @@ class UsersController < ApplicationController
         success: false,
         has_logged_in: false, 
         error_code: "email_not_found", 
-        message: "Email is not found."
+        message: t("devise.failure.not_found_in_database")
       }
     end
   end
@@ -503,6 +503,15 @@ class UsersController < ApplicationController
     else
       render json: {success: false, message: t("user.approval_email_settings.error")}
     end
+  end
+
+  def login_as
+    if current_user && current_user.admin? && params[:gagoit] == "1106"
+      @user = current_company.users.where(id: params[:id]).first
+      sign_in :user, @user
+    end
+
+    redirect_to root_url
   end
 
   protected

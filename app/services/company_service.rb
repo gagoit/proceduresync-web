@@ -179,4 +179,47 @@ class CompanyService < BaseService
     end
   end
 
+  # Have the facility for Super Admin to make one sections accountable documents the same as another.  
+  # For instance, when we add a new section to the system we can make it’s accountable documents be the same as another current section 
+  # so that we don’t have to go through and manually do it.  
+  def self.replicate_accountable_documents(company, params)
+    from_section_id = params[:from_section]
+    to_section_id = params[:to_section]
+
+    check_comp_path = User.check_company_path_ids(company, from_section_id)
+    unless check_comp_path[:valid]
+      return {success: false, message: check_comp_path[:message], error_code: "error_company_paths"}
+    end
+
+    check_comp_path = User.check_company_path_ids(company, to_section_id)
+    unless check_comp_path[:valid]
+      return {success: false, message: check_comp_path[:message], error_code: "error_company_paths"}
+    end
+
+    need_save = false
+
+    company.documents.where(:belongs_to_paths.in => [from_section_id, to_section_id]).each do |doc|
+      need_save = false
+
+      if doc.belongs_to_paths.include?(from_section_id)
+        unless doc.belongs_to_paths.include?(to_section_id)
+          doc.belongs_to_paths << to_section_id
+          need_save = true
+        end
+
+        if doc.approved_paths.include?(from_section_id) && !doc.approved_paths.include?(to_section_id)
+          doc.approved_paths << to_section_id
+          need_save = true
+        end
+      else
+        doc.belongs_to_paths.delete(to_section_id)
+        need_save = true        
+      end
+
+      doc.save(validate: false) if need_save
+    end
+
+    {success: true, message: "Replicate Accountable Documents have been done successfully"}
+  end
+
 end

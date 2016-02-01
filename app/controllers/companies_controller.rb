@@ -97,7 +97,11 @@ class CompaniesController < ApplicationController
         changes = {"node_name" => params[:name], "node_id" => child.id, "node_type" => child_type}
         @company.create_logs({user_id: current_user.id, action: ActivityLog::ACTIONS[:created_organisation_structure], attrs_changes: changes})
 
-        render json: {success: true, name: child.name, id: child.id.to_s, message: "#{obj_name} has been created successfully"}
+        current_company.reload
+
+        render json: {  success: true, name: child.name, id: child.id.to_s, message: "#{obj_name} has been created successfully",
+                        new_replicate_accountable_documents_html: render_to_string(:partial => "companies/replicate_accountable_documents", formats: [:html])
+                      }
       else
         render json: {success: false, message: child.errors.full_messages.first}
       end
@@ -130,8 +134,12 @@ class CompaniesController < ApplicationController
         obj_name = @company.try("#{node_type}_label".to_sym) || node_type.titleize
 
         @company.create_logs({user_id: current_user.id, action: ActivityLog::ACTIONS[:updated_organisation_structure], attrs_changes: changes}) unless changes.blank?
-
-        render json: {success: true, name: node.name, id: node.id.to_s, message: "#{obj_name} has been updated successfully"}
+        
+        current_company.reload
+        
+        render json: {  success: true, name: node.name, id: node.id.to_s, message: "#{obj_name} has been updated successfully",
+                        new_replicate_accountable_documents_html: render_to_string(:partial => "companies/replicate_accountable_documents", formats: [:html])
+                      }
       else
         render json: {success: false, message: node.errors.full_messages.first}
       end
@@ -182,6 +190,12 @@ class CompaniesController < ApplicationController
       success: true,
       tree_data: @company.tree_structure
     }
+  end
+
+
+  def replicate_accountable_documents
+    result = CompanyService.replicate_accountable_documents(current_company, params)
+    render json: result
   end
 
 
