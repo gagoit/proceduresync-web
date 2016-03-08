@@ -141,7 +141,7 @@ class DocumentService < BaseService
 
       current_bucket = s3.buckets[CONFIG[:bucket]]
 
-      doc_name_parts = { title: doc.title.gsub(' ', '+'), version: "v#{version.code}" }
+      doc_name_parts = { title: doc.title.naming_file_and_folder(' ').gsub(' ', '+'), version: "v#{version.code}" }
 
       name_on_s3 = ["#{doc.company_id}", "documents", "#{doc_name_parts[:title]}", 
         "#{doc_name_parts[:version]}"]

@@ -21,9 +21,10 @@ class PermissionService < BaseService
     structure: :organisation_structure,
     add_org_node: :organisation_structure,
     update_org_node: :organisation_structure,
-    load_childs_of_org_node: :organisation_structure,
+    load_childs_of_org_node: :compliance,
     preview_company_structure: :organisation_structure,
     replicate_accountable_documents: :organisation_structure,
+    compliance: :compliance,
 
     create_category: :create,
     update_category: :update,
@@ -33,7 +34,8 @@ class PermissionService < BaseService
     update_name: :update,
     update_paths: :update,
     create_private_document: :create,
-    logs: :read
+    logs: :read,
+    favourite_docs: :read
   }
 
   ##
@@ -65,6 +67,10 @@ class PermissionService < BaseService
       if target_class == Company
         if alias_action == :organisation_structure
           return user_comp_perm[:can_edit_organisation_structure]
+        end
+
+        if alias_action == :compliance
+          return u_comp["user_type"] != Permission::STANDARD_PERMISSIONS[:standard_user][:code]
         end
 
         if action == :generate_invoice
@@ -444,5 +450,14 @@ class PermissionService < BaseService
     u_comp = user.user_company(company, true)
 
     u_comp && (u_comp["user_type"] == Permission::STANDARD_PERMISSIONS[:company_representative_user][:code] || u_comp["user_type"] == Permission::STANDARD_PERMISSIONS[:admin_user][:code])
+  end
+
+  ##
+  #
+  ##
+  def self.can_remotely_wipe_device(company, current_user, user)
+    return true if current_user.admin? || current_user.super_help_desk_user?
+
+    current_user.id == user.id
   end
 end

@@ -1,0 +1,9 @@
+- percentage = current_user.unread_percentage(current_company)
+.div{class: "col-lg-#{div_length} unread-percentage"}
+  .panel.panel-metric.panel-metric-sm
+    .panel-body.panel-body-default
+      .metric-content.metric-icon.row.no-padding.no-margin
+        .header.col-sx-8.col-lg-8
+          Unread Document Percentage
+        .percentage.col-sx-4.col-lg-4{class: "unread-percentage-#{unread_percentage_color(percentage)}"}
+          = show_percentage(percentage)

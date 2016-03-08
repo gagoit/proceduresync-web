@@ -155,6 +155,7 @@ class Document
 
       self.approved = true
       self.need_approval = false
+      self.belongs_to_paths = []
       self.approved_paths = self.belongs_to_paths
     end
 
@@ -167,6 +168,11 @@ class Document
   before_save do
     current_time = Time.now.utc
     
+    if private_for_id
+      self.is_private = true
+      self.belongs_to_paths = []
+    end
+
     #set inactive when expiry
     if expiry && ((expiry.utc <= current_time) rescue true)
       self.active = false
@@ -859,6 +865,8 @@ class Document
 
       documents.each do |doc|
         doc = Document.get_document(doc)
+        next if doc.nil? || doc.is_private
+
         new_attrs[:belongs_to_paths] = ((doc.belongs_to_paths || []) + paths).uniq
         doc.attributes = new_attrs
         doc.save(validate: false)
@@ -870,6 +878,8 @@ class Document
       
       documents.each do |doc|
         doc = Document.get_document(doc)
+        next if doc.nil? || doc.is_private
+
         new_attrs[:belongs_to_paths] = ((doc.belongs_to_paths || []) + paths).uniq
         new_attrs[:approved_paths] = ((doc.approved_paths || []) + paths).uniq
 
@@ -882,6 +892,8 @@ class Document
 
       documents.each do |doc|
         doc = Document.get_document(doc)
+        next if doc.nil? || doc.is_private
+
         new_attrs[:belongs_to_paths] = (doc.belongs_to_paths || []) - paths
         
         doc.attributes = new_attrs
@@ -960,6 +972,6 @@ class Document
   end
 
   def self.approval_expiration_time
-    Time.now.advance(days: -14).utc
+    Time.now.advance(minutes: -5).utc
   end
 end

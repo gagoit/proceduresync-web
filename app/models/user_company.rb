@@ -31,6 +31,11 @@ class UserCompany
 
   field :active, type: Boolean, default: true
 
+  field :unread_docs_count, type: Integer, default: 0      # This is a total of all documents the user has that are "Active" + "Accountable" + "Unread"
+  field :accountable_docs_count, type: Integer, default: 0 # This is a total of all documents the user has that are "Active" + "Accountable" 
+
+  field :need_update_docs_count, type: Boolean                  # When document has been changed, we need to update the cache (unread doc, accountable doc) for user
+
   index({user_id: 1, company_id: 1})
 
   index({company_id: 1})

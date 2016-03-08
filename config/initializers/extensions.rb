@@ -36,4 +36,20 @@ class String
     end
     self
   end
+
+  # escape characters: " * / : < > ? \ | -
+  # https://d2l.custhelp.com/app/answers/detail/a_id/1473/~/special-characters-in-file-%26-folder-names
+  def naming_file_and_folder(replacement_char = nil)
+    pattern = /(\"|\*|\/|\:|\<|\>|\?|\\|\||\-)/
+    replacement_char ||= "_"
+
+    self.gsub(pattern){|match| replacement_char}
+  end
+
+  def escape_characters(replacement_char = nil)
+    pattern = /(\'|\"|\.|\*|\/|\-|\\|\)|\$|\+|\(|\^|\?|\!|\~|\`|\=|\||\:|\<|\>)/
+    replacement_char ||= "_"
+
+    self.gsub(pattern){|match| replacement_char}
+  end
 end

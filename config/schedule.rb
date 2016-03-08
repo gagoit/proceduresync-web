@@ -54,3 +54,7 @@ end
 every 1.hours do
   rake "update_not_accountable_paths"
 end
+
+every 1.minutes do
+  runner "User.update_docs_count"
+end

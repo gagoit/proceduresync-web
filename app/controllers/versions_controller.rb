@@ -56,7 +56,7 @@ class VersionsController < ApplicationController
 
     folder = "tmp/#{@document.id}-#{Time.now.utc.to_i}"
     file_name = "#{folder}/#{version.id}.pdf"
-    file_name_encrypted = "#{folder}/#{@document.title}.pdf"
+    file_name_encrypted = "#{folder}/#{@document.title.naming_file_and_folder}.pdf"
 
     Dir::mkdir(folder) if Dir[folder].empty?
 

@@ -315,7 +315,7 @@ class ReportService < BaseService
   # Accountability report CSV: order it by company, category and document.
   ##
   def self.get_accountable_report(user, company, report_setting)
-    docs = company.documents.active.effective.where(:approved_paths.in => [report_setting[:areas]]).pluck(:title, :category_name)
+    docs = Document.accountable_documents_for_area(company, report_setting[:areas]).pluck(:title, :category_name)
 
     file = CSV.generate({:write_headers => true}) do |csv|
       csv << ["Area", "Category", "Document"]
@@ -337,7 +337,7 @@ class ReportService < BaseService
   # The CSV  would have “Name”, “Email”, “Supervise For” & “Approve For”.
   ##
   def self.get_supervisors_approvers_report(user, company, report_setting)
-    user_comps = company.user_companies.includes([:user]).any_of({is_approver: true, :approver_path_ids.in => [report_setting[:areas]]}, 
+    user_comps = company.user_companies.active.includes([:user]).any_of({is_approver: true, :approver_path_ids.in => [report_setting[:areas]]}, 
                                     {is_supervisor: true, :supervisor_path_ids.in => [report_setting[:areas]]})
 
     all_paths_hash = company.all_paths_hash

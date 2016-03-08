@@ -547,7 +547,8 @@ var User = {
     var self = this;
 
     var columns = [
-        { "sTitle": '<input id="optionsCheckboxAll" type="checkbox" value="all" class="icheck square-blue">',
+        { "sTitle": '<input id="optionsCheckboxAll" type="checkbox" value="all" class="icheck square-blue">' +
+                        ProceduresyncTable.selectPageHtmlTemplate(),
           "sWidth": "5%",
           "bSortable": false,
           "mData": "id",
@@ -747,7 +748,7 @@ var User = {
       }
     ];
 
-    if(table.attr("data-is-owner") == "true"){
+    if(table.attr("data-see-remotely-wipe") == "true"){
       columns.push({ "sTitle": "",
         "sWidth": "10%",
         "bSortable": false,

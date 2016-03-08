@@ -7,8 +7,9 @@ var Company = {
   **/
   init: function(){
     this.company_structure_page = $("#company_structure_page");
+    this.compliance_page = $("#compliance_page");
     this.edit_organisation_modal = $('#edit_organisation_modal');
-    this.company_url = this.company_structure_page.attr("data-company-url");
+    this.company_url = this.company_structure_page.attr("data-company-url") || this.compliance_page.attr("data-company-url");
 
     this.preview_company_structure_modal = $('#preview_organisation_structure');
 
@@ -142,6 +143,47 @@ var Company = {
     if(self.edit_company_page.length > 0){
       self.form_init();
     }
+
+    self.init_compliance_page();
+  },
+
+  /**
+  *
+  **/
+  init_compliance_page: function(){
+    var self = this;
+
+    if(self.compliance_page.length == 0){
+      return;
+    }
+
+    var company_id = self.compliance_page.attr("data-company-id");
+    var table_org = self.compliance_page.find(".table-organisation");
+
+    self.load_childs_of_org_node(table_org, company_id, "company");
+
+    self.init_table_organisation(table_org);
+  },
+
+  expand_table_in_compliance: function(table, td, parent_id){
+    if(typeof td == "undefined"){
+      td = table.find("td").last();
+    }
+    if(typeof parent_id == "undefined"){
+      parent_id = "";
+    }
+    var had_clicked = false;
+
+    $(td).find("span.text-muted").each(function(i, span){
+        
+      if(!had_clicked && ($(span).attr("data-path").indexOf(parent_id) > -1 || parent_id == "")){
+
+        $(span).find("a.edit-name").click();
+        had_clicked = true;
+        return;
+      }
+    });
+    
   },
 
   /**
@@ -394,7 +436,8 @@ var Company = {
         type: 'GET',
         data: {
           node_type: node_type,
-          node_id: node_id
+          node_id: node_id,
+          compliance: table.attr("data-compliance")
         }
       }).done(function(ev){
         if(ev.success == true){
@@ -403,6 +446,14 @@ var Company = {
 
           next_node.addClass("visible").removeClass("not-visible");
           next_node_header.addClass("visible").removeClass("not-visible");
+
+          if(ev.childs_count == 0){
+            table.attr("data-compliance-expand", "false");
+          }
+
+          if(table.attr("data-compliance-expand") == "true"){
+            self.expand_table_in_compliance(table, next_node, (node_type == "company" ? "" : node_id));
+          }
         }else{
           window.location.reload();
         }

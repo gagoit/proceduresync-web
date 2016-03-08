@@ -74,6 +74,10 @@ class CompaniesController < ApplicationController
 
   end
 
+  def compliance
+    @company_table_structure = current_company.table_structure(["company"])
+  end
+
   # PATCH/POST /companies/1/add_org_node
   # PATCH/POST /companies/1/add_org_node.json
   # params : {
@@ -166,11 +170,18 @@ class CompaniesController < ApplicationController
         node = @company.company_structures.where(type: node_type).find(params[:node_id])
       end
 
+      partial = "companies/child_td_in_table"
+
+      if params[:compliance]
+        partial = "companies/child_td_in_table_for_compliance"
+      end
+
       render json: {
         success: true,
         name: node.name,
         id: node.id.to_s,
-        childs_html: render_to_string(:partial => "companies/child_td_in_table", locals: {childs: node.childs, parent: node}, formats: [:html])
+        childs_count: node.childs.count,
+        childs_html: render_to_string(:partial => partial, locals: {childs: node.childs, parent: node}, formats: [:html])
       }
     rescue Exception => e
       puts e.message
@@ -294,15 +305,21 @@ class CompaniesController < ApplicationController
        
       current_paths = []
     end
+
+    partial = "shared/company_structure_table"
+
+    if params[:compliance]
+      partial = "shared/company_structure_table_for_compliance"
+    end
     
     render json: {
       success: true,
-      company_structure_table_html: render_to_string(:partial => "shared/company_structure_table", 
+      company_structure_table_html: render_to_string(:partial => partial, 
           :locals => {
               company_table_structure: current_company.table_structure(["company"]), 
               current_paths: current_paths, 
               editable_paths: editable_paths,
-              table_id: params[:table_id], expanded: true}, formats: [:html])
+              table_id: params[:table_id], expanded: params[:expanded], compliance: params[:compliance]}, formats: [:html])
     }
   end
 

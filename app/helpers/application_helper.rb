@@ -65,6 +65,12 @@ module ApplicationHelper
         object: nil,
         show: true
       },
+      compliance: {
+        title: "Compliance",
+        path: compliance_company_path(company),
+        action: :compliance,
+        object: company
+      },
       organization_structure: {         #Need View / Edit Company Billing Info / Data Usage permission to see this
         title: "Organisation",
         path: structure_company_path(company),
@@ -193,6 +199,15 @@ module ApplicationHelper
       user_type: {
         show: true,
         length: 6
+      },
+      unread_percentage: {
+        show: true,
+        length: 6
+      },
+      team_unread_percentage: {
+        show: false,
+        perms: [:is_supervisor_user],
+        length: 6
       }
     }
 
@@ -204,6 +219,9 @@ module ApplicationHelper
       items.keys.each do |i|
         items[i][:show] = true
       end
+
+      items.delete(:unread_percentage) unless user.user_company(company)
+      items.delete(:team_unread_percentage)
 
       return items
     end
@@ -273,7 +291,7 @@ module ApplicationHelper
       end
     end
 
-    [:active_users, :private_folder_usage, :user_type].each do |key|
+    [:active_users, :private_folder_usage, :user_type, :unread_percentage, :team_unread_percentage].each do |key|
       next unless (dashboard_items[key][:show] rescue false)
       
       item = {partial: "home/#{key.to_s}", locals: {div_length: dashboard_items[key][:length]}}
@@ -487,5 +505,26 @@ module ApplicationHelper
     all_paths = company.all_paths_hash
 
     paths.map { |e| all_paths[e] }
+  end
+
+  # This is colour coded. 0-5% Green, 6-10% Yellow, 11-15% Orange and >15% red. 
+  def unread_percentage_color(num)
+    num = num.to_f if num.is_a?(Fixnum)
+    if (num.nan? rescue nil)
+      ''
+    elsif num >= 0 && num <= 5
+      'green'
+    elsif num >= 6 && num <= 10
+      'yellow'
+    elsif num >= 11 && num <= 15
+      'orange'
+    else
+      'red'
+    end
+  end
+
+  def show_percentage(num)
+    num = num.to_f if num.is_a?(Fixnum)
+    num.nan? ? "" : "#{num}%"
   end
 end

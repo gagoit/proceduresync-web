@@ -1,5 +1,5 @@
 .table-responsive
-  %table.table.table-bordered.table-organisation{"data-company-name" => current_company.name, id: (local_assigns[:table_id] || "table-organisation-id"), "data-expanded" => local_assigns[:expanded].to_s}
+  %table.table.table-bordered.table-organisation{"data-company-name" => current_company.name, id: (local_assigns[:table_id] || "table-organisation-id"), "data-expanded" => local_assigns[:expanded].to_s, "data-compliance" => local_assigns[:compliance].to_s}
     %tr
       %th.org-node-header.company-header{"data-node-type" => "division"}
         = current_company.name

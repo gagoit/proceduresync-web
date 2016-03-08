@@ -91,4 +91,20 @@ class CompanyStructure
       [parent.path, id.to_s].join(Company::NODE_SEPARATOR)
     end
   end
+
+  # Formula for each org section:  
+  # (
+  #   (Every "Active" user that belongs to that section's "Unread Document Total") 
+  #   / 
+  #   (Every "Active" user that belongs to that section's "Total Accountable") 
+  #   ) x 100.   
+  # This is colour coded. 0-5% Green, 6-10% Yellow, 11-15% Orange and >15% red.
+  def unread_percentage
+    users = company.user_companies.active.where(:company_path_ids => /^#{path}/i)
+
+    unread_docs_count = users.sum(:unread_docs_count)
+    accountable_docs_count = users.sum(:accountable_docs_count)
+
+    ((unread_docs_count / accountable_docs_count.to_f) * 100).round(2) rescue 0
+  end
 end

@@ -548,6 +548,10 @@ class User
       query["$or"] << query_belongs_to
     end
 
+    if options[:types] == "accountable"
+      query.merge!({:assign_document_for.ne => Document::ASSIGN_FOR[:restricted]})
+    end
+
     query
   end
 
@@ -1451,5 +1455,64 @@ class User
     end
 
     false
+  end
+
+  ##
+  # fields: accountable_docs_count, unread_docs_count
+  ##
+  def docs_count(company, field, u_comp = nil)
+    u_comp ||= user_company(company)
+
+    u_comp.try(field) rescue 0
+  end
+
+  def unread_percentage(company, u_comp = nil)
+    u_comp ||= user_company(company)
+
+    ((u_comp.unread_docs_count / u_comp.accountable_docs_count.to_f) * 100).round(2) rescue 0.0
+  end
+
+  ##
+  # Formula for "Team Unread Document Percentage" is:  
+  # (
+  #   (Every "Active" user that belongs to the section(s) you supervise for's "Unread Document Total") 
+  #   / (Every active user that belongs to the section(s) you supervise for's "Total Accountable") 
+  # ) x 100
+  ##
+  def team_unread_document_percentage(company)
+    u_comp ||= user_company(company, true)
+
+    return 0.0 unless (u_comp_perm = comp_permission(company, u_comp, true))
+    return 0.0 unless (u_comp["is_supervisor"] && !u_comp['supervisor_path_ids'].blank?)
+
+    team_users = company.user_companies.active.where(:company_path_ids.in => u_comp['supervisor_path_ids'])
+
+    unread_docs_count = team_users.sum(:unread_docs_count)
+    accountable_docs_count = team_users.sum(:accountable_docs_count)
+
+    ((unread_docs_count / accountable_docs_count.to_f) * 100).round(2) rescue 0.0
+  end
+
+  ##
+  # Update cache docs (unread/accountable) count for user
+  ##
+  def update_docs_count(company = nil, u_comp = nil)
+    return unless company
+
+    accountable_docs =  assigned_docs(company)
+    read_ids = read_document_ids + private_document_ids
+
+    u_comp ||= user_company(company)
+    u_comp.accountable_docs_count = accountable_docs.count
+    u_comp.unread_docs_count = accountable_docs.where(:id.nin => read_ids).count
+    u_comp.need_update_docs_count = false
+
+    u_comp.save
+  end
+
+  def self.update_docs_count
+    UserCompany.includes(:user, :company).where(need_update_docs_count: true).each do |u_comp|
+      u_comp.user.update_docs_count(u_comp.company, u_comp) if u_comp.user
+    end
   end
 end

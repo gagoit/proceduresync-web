@@ -26,10 +26,14 @@
                     %option{value: "action"} Action
                     - if @can_add_edit_doc
                       %option{:value => "documents_category"} Documents Category
-                    - if @can_bulk_assign_doc
+                    - if @can_bulk_assign_doc && @table[:filter] != "private"
                       %option{:value => "documents_assignment"} Documents Assignment
                       
                     %option{:value => "download_csv"} Download CSV File
+                    - if @table[:filter] == "favourite"
+                      %option{:value => "remove_favourites"} Remove from favourites
+                    - else
+                      %option{:value => "add_favourites"} Add to favourites
           .panel-body
             .table-responsive
               %table#all_documents.table.table-striped{:width => "100%", "data-filter" => @table[:filter], "data-category_id" => @table[:category_id], "data-search" => @table[:search], "data-types" => params[:types], "data-per-page" => OBJECT_PER_PAGE[:document], "data-order-by-ranking" => "#{@table[:search].blank? ? 'false' : 'true'}"}

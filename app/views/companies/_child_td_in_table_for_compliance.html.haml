@@ -1,0 +1,8 @@
+- childs.each do |child|
+  - percentage = child.unread_percentage
+  %span.text-muted.visible{:'data-uid' => child[:id], :'data-path' => child[:path] }
+    %h5
+      %a.edit-name
+        = child[:name]
+        %span.badge-number.label.pull-right{class: "unread-percentage-#{unread_percentage_color(percentage)}"}
+          = show_percentage(percentage)

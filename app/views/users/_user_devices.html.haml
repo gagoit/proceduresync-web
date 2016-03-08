@@ -4,4 +4,4 @@
     
   .panel-body.scroll-panel
     .table-responsive
-      %table#table-user-devices.table.table-striped{:width => "100%", :'data-url' => devices_user_path(user), "data-is-owner" => (current_user.id == user.id).to_s}
+      %table#table-user-devices.table.table-striped{:width => "100%", :'data-url' => devices_user_path(user), "data-see-remotely-wipe" => PermissionService.can_remotely_wipe_device(current_company, current_user, user).to_s}

@@ -514,7 +514,7 @@ class DocumentsController < ApplicationController
   # Documents Assignment in documents page
   # Here you can bulk assign many documents to a different part of the organisation:
   # @params:
-  # document_ids: id1,id2,id3
+  # ids: id1,id2,id3
   # assignment_type: {String}
   #  - assign_without_approval: "Distribute document(s) without approval to the following areas"
   #  - add_accountability: "Make document (s) accountable document(s) for the following users"} Add Accountability

@@ -39,7 +39,8 @@ var Document = {
 
       if(self.docs_table.length > 0){
         var columns = [
-            { "sTitle": '<input id="optionsCheckboxAll" type="checkbox" value="all" class="icheck square-blue">',
+            { "sTitle": '<input id="optionsCheckboxAll" type="checkbox" value="all" class="icheck square-blue">' +
+                        ProceduresyncTable.selectPageHtmlTemplate(),
               "sWidth": "5%",
               "bSortable": false,
               "mData": "id",
@@ -175,6 +176,8 @@ var Document = {
             $('#document_category_modal').modal();
           }else if (selectedValue == "download_csv") {
             self.downLoadCSV();
+          }else if (selectedValue == "add_favourites" || selectedValue == "remove_favourites"){
+            self.addFavourites(selectedValue);
           }
 
           $(this).select2('val', 'action');
@@ -978,30 +981,40 @@ var Document = {
   downLoadCSV: function(){
     var self = this;
     Proceduresync.show_loading();
-
-    filter = self.docs_table.data("filter");
-    sort = self.docs_table.dataTable().fnSettings().aaSorting;
-    sort_column = (sort && sort[0]) ? sort[0][0] : 1;
-    sort_dir = (sort && sort[0]) ? sort[0][1] : "asc";
-    selected_ids = ProceduresyncTable.getSelectedIds(self.docs_table);
-    search = self.docs_table.data("search");
     
     $.fileDownload("/documents/export_csv.csv", {
       httpMethod: "POST",
-      data: {
-        filter: filter,
-        sort_column: sort_column,
-        sort_dir : sort_dir,
-        search: search,
-        ids : selected_ids,
-        filter_category_id: self.docs_table.data("category_id"),
-        document_types: self.docs_table.data("types"),
-        order_by_ranking: self.docs_table.data("order-by-ranking")
-      }
+      data: ProceduresyncTable.getDataForAction(self.docs_table)
     })
 
     Proceduresync.hide_loading();
+  },
 
+  addFavourites: function(action_type){
+    var self = this;
+    Proceduresync.show_loading();
+
+    var data = ProceduresyncTable.getDataForAction(self.docs_table);
+    data.action_type = action_type;
+    
+    $.ajax("/users/favourite_docs", {
+      type: 'POST',
+      data: data
+    }).done(function(ev){
+      if(ev.success){
+        AlertMessage.show("success", ev.message);
+        if(action_type == "remove_favourites"){
+          self.docs_table.dataTable().fnReloadAjax();
+        }
+      }else{
+        alert(ev.message);
+        window.location.reload();
+      }
+
+      Proceduresync.hide_loading();
+    });
+
+    Proceduresync.hide_loading();
   },
 
   renderCheckbox: function(data){

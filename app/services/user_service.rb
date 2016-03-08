@@ -290,6 +290,8 @@ class UserService < BaseService
 
     if user = options[:user]
       update_user_documents_when_user_change(options)
+      
+      user.update_docs_count(company)
 
     elsif document = options[:document]
       update_user_documents_when_document_change(options)
@@ -354,6 +356,9 @@ class UserService < BaseService
     new_avai_user_ids.each do |user_id|
       u_doc = document.create_user_document(company, {user_id: user_id})
     end
+
+    company.user_companies.where(:user_id.in => (available_user_ids + already_avai_user_ids)).update_all(need_update_docs_count: true)
+    User.delay.update_docs_count
 
     document.company_users(company).where(:user_id.in => available_user_ids).update_all({is_accountable: true, updated_at: Time.now.utc})
 
@@ -427,6 +432,9 @@ class UserService < BaseService
       u_doc.update_all({is_favourited: is_favourited, is_accountable: is_accountable, updated_at: Time.now.utc})
     end
 
+    # user.user_companies.where(:company_id => company.id).update_all(need_update_docs_count: true)
+    user.update_docs_count(company)
+
     if is_accountable || is_favourited
       NotificationService.delay.documents_have_changed_meta_data([user.id], [document.id])
     else
@@ -490,5 +498,4 @@ class UserService < BaseService
 
     paths_has_no_accountable_docs
   end
-
 end

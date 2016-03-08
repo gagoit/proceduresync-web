@@ -603,7 +603,10 @@ end
 
 ## Dec 5, 2015:
 ## Update not_accountable_by_ids not_accountable_for
-Document.where(not_accountable_by_ids: nil, not_accountable_for: nil).each do |doc|
-  Document.where(:_id => doc.id).update_all(not_accountable_by_ids: [], not_accountable_for: [], updated_at: doc.updated_at.utc)
-end
+# Document.where(not_accountable_by_ids: nil, not_accountable_for: nil).update_all(not_accountable_by_ids: [], not_accountable_for: [])
 
+## Feb 22, 2016:
+## Update the cache (unread doc, accountable doc) for user
+UserCompany.includes(:user, :company).each do |u_comp|
+  u_comp.user.update_docs_count(u_comp.company, u_comp) if u_comp.user
+end

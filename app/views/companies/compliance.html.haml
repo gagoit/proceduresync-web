@@ -1,0 +1,47 @@
+#compliance_page.page-content{"data-company-id" => current_company.id, "data-company-url" => company_path(current_company)}
+  .page-subheading.page-subheading-md
+    %ol.breadcrumb
+      %li.active
+        %a{:href => "javascript:;"} Organisation
+  
+  = render :partial => "shared/messages"
+
+  .container-fluid-md
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            %h4
+              Unread Document Compliance
+              %i#preview_company_structure_btn{:title => "Preview your Organisation Structure",  "data-placement" => "bottom", "data-toggle" => "tooltip"}
+              
+              %a.pull-right.help-icon{:href => t("help_links.compliance.title"), target: "_blank", "title" => t("help_links.compliance.tooltip"), "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                %i.fa.fa-info-circle
+
+            Note: The percentage of unread documents is shown beside each section
+
+          .panel-body
+            .table-responsive
+              %table.table.table-bordered.table-organisation.table-bordered{"data-company-name" => current_company.name, id: "table-org-for-compliance", "data-compliance" => "true", "data-compliance-expand" => "true"}
+                %tr
+                  %th.org-node-header.company-header{"data-node-type" => "division"}
+                    %span.title #{@company.company_label}
+                    %h5= current_company.name
+                  %th.org-node-header.division-header{"data-node-type" => "department"}
+                    %span.title #{@company.division_label}
+                    %h5
+                  %th.org-node-header.department-header{"data-node-type" => "group"}
+                    %span.title #{@company.department_label}
+                    %h5
+                  %th.org-node-header.group-header{"data-node-type" => "depot"}
+                    %span.title #{@company.group_label}
+                    %h5
+                  %th.org-node-header.depot-header{"data-node-type" => "panel"}
+                    %span.title #{@company.depot_label}
+                    %h5
+                %tr
+                  %td.org-node.company-childs{"data-node-type" => "division", "data-parent-type" => "company"}
+                  %td.org-node.division-childs{"data-node-type" => "department", "data-parent-type" => "division"}
+                  %td.org-node.department-childs{"data-node-type" => "group", "data-parent-type" => "department"}
+                  %td.org-node.group-childs{"data-node-type" => "depot", "data-parent-type" => "group"}
+                  %td.org-node.depot-childs{"data-node-type" => "panel", "data-parent-type" => "depot"}

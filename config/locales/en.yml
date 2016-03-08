@@ -242,6 +242,11 @@ en:
       success: "User's accountable documents have been marked as read"
       confirm_text: "Do you want to mark all user's accountable documents as read?"
 
+    add_favourites:
+      success: "Document(s) has/have been added to favourites successfully."
+    remove_favourites:
+      success: "Document(s) has/have been removed from favourites successfully."
+
   logs:
     title: Logs
     table:
@@ -526,23 +531,26 @@ en:
 
   help_links:
     edit_organisation:
-      title: "https://proceduresync.freshdesk.com/solution/categories/4000001940/folders/4000009062/articles/4000041526-editing-the-organisation-structure"
+      title: "https://proceduresync.freshdesk.com/support/solutions/articles/4000041526-editing-the-organisation-structure"
       tooltip: "How do I edit the Organisation Structure?"
     permission_meaning:
-      title: "https://proceduresync.freshdesk.com/solution/categories/4000001940/folders/4000009150/articles/4000041940-what-do-the-permissions-mean"
+      title: "https://proceduresync.freshdesk.com/support/solutions/articles/4000041940-what-do-the-permissions-mean"
       tooltip: "What do the permissions mean?"
     edit_user:
-      title: "https://proceduresync.freshdesk.com/solution/articles/4000041944-how-to-edit-a-user"
+      title: "https://proceduresync.freshdesk.com/support/solutions/articles/4000041944-how-to-edit-a-user"
       tooltip: "How do I edit a user?"
     add_user:
-      title: "https://proceduresync.freshdesk.com/solution/categories/4000001940/folders/4000009150/articles/4000041942-how-to-add-a-new-user"
+      title: "https://proceduresync.freshdesk.com/support/solutions/articles/4000041942-how-to-add-a-new-user"
       tooltip: "How do I add a new user?"
     add_document:
-      title: "https://proceduresync.freshdesk.com/solution/categories/4000001940/folders/4000009149/articles/4000041877-how-to-create-a-new-document"
+      title: "https://support.proceduresync.com/support/solutions/articles/4000042551-how-to-create-add-a-new-document"
       tooltip: "How do I create a new document?"
     edit_document:
-      title: "https://proceduresync.freshdesk.com/solution/categories/4000001940/folders/4000009149/articles/4000041879-how-to-edit-document-details"
+      title: "https://proceduresync.freshdesk.com/support/solutions/articles/4000041879-how-to-edit-document-details"
       tooltip: "How do I edit document details?"
+    compliance:
+      title: "https://support.proceduresync.com/support/solutions/articles/4000074125-web-portal-compliance-page"
+      tooltip: "Web Portal compliance page"
 
   dashboard:
     admin_contact:

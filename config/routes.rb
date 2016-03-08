@@ -64,6 +64,7 @@ Proceduresync::Application.routes.draw do
       put :update_path
       get :export_csv
       get :load_permsions_for_user_type, defaults: {format: :json}
+      post :favourite_docs, defaults: {format: :json}
     end
   end
 
@@ -86,6 +87,8 @@ Proceduresync::Application.routes.draw do
       get :load_company_structure_table, defaults: {format: :json}
 
       put :replicate_accountable_documents, defaults: {format: :json}
+
+      get :compliance
     end
   end
 

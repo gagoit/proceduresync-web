@@ -404,7 +404,7 @@ class UsersController < ApplicationController
   def remote_wipe_device
     @user = User.find(params[:id])
 
-    if current_user.id == @user.id #|| PermissionService.has_permission(:edit, current_user, current_company, @user)
+    if PermissionService.can_remotely_wipe_device(current_company, current_user, @user)
     else
       raise CanCan::AccessDenied
     end
@@ -423,7 +423,7 @@ class UsersController < ApplicationController
   def sent_test_notification
     @user = User.find(params[:id])
 
-    if current_user.id == @user.id #|| PermissionService.has_permission(:edit, current_user, current_company, @user)
+    if PermissionService.can_remotely_wipe_device(current_company, current_user, @user)
     else
       raise CanCan::AccessDenied
     end
@@ -512,6 +512,16 @@ class UsersController < ApplicationController
     end
 
     redirect_to root_url
+  end
+
+  def favourite_docs
+    if params[:action_type] == "add_favourites"
+      Users::FavouriteDoc.instance.add_favourites(current_user, current_company, params)
+    else
+      Users::FavouriteDoc.instance.remove_favourites(current_user, current_company, params)
+    end
+
+    render json: {success: true, message: t("user.#{params[:action_type]}.success")}
   end
 
   protected
