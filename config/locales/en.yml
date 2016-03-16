@@ -116,7 +116,7 @@ en:
 
     edit:
       title: User Edit
-      confirm_existed_user: "There is an User (%{name}) with your entered email address in the system. If you keep this email, the existed user will be assigned to this company. Would you like to keep this email?"
+      confirm_existed_user: "A user with this email address already exists. If you keep this email, the existing user will be updated based on what you enter now. Would you like to keep this email?"
 
     new:
       title: New User

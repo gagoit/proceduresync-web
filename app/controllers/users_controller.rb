@@ -111,7 +111,7 @@ class UsersController < ApplicationController
       else
         result = {
           success: false, message: "", error_code: "user_existed", 
-          message: t("user.edit.confirm_existed_user", {name: existed_user.name}),
+          message: t("user.edit.confirm_existed_user"),
           existed_user_url: edit_user_path(existed_user),
           existed_user_name: existed_user.name
         }

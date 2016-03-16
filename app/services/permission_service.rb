@@ -458,6 +458,9 @@ class PermissionService < BaseService
   def self.can_remotely_wipe_device(company, current_user, user)
     return true if current_user.admin? || current_user.super_help_desk_user?
 
-    current_user.id == user.id
+    return true if current_user.id == user.id
+
+    u_comp = current_user.user_company(company, true)
+    u_comp["user_type"] == Permission::STANDARD_PERMISSIONS[:company_representative_user][:code] || u_comp["user_type"] == Permission::STANDARD_PERMISSIONS[:admin_user][:code]
   end
 end

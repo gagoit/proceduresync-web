@@ -8,7 +8,7 @@ class Permission
       permissions: [:add_edit_documents, :view_all_user_read_receipt_reports, :view_all_user_read_receipt_reports_under_assignment, 
         :view_edit_company_billing_info_data_usage, :add_edit_company_representative_user, :add_edit_admin_user, :add_edit_approver_user, 
         :add_edit_supervisor_user, :add_edit_standard_user, :add_edit_document_control_admin_user, :add_edit_document_control_standard_user, 
-        :is_approval_user, :can_make_document_restricted, :can_edit_organisation_structure, :view_all_accountability_reports, 
+        :can_make_document_restricted, :can_edit_organisation_structure, :view_all_accountability_reports, 
         :view_accountability_reports_under_assignment, :is_supervisor_user, :bulk_assign_documents
       ],
       code: "company_representative_user"
