@@ -32,7 +32,7 @@ class HomeController < ApplicationController
 
   def gen_hash_from_params_hash(utctime)
     digest  = OpenSSL::Digest::Digest.new('MD5')
-    OpenSSL::HMAC.hexdigest(digest, CONFIG['freshdesk_sso_decret'],"#{current_user.name}#{current_user.email}#{utctime}")
+    OpenSSL::HMAC.hexdigest(digest, CONFIG['freshdesk_sso_decret'],"#{current_user.name}#{CONFIG['freshdesk_sso_decret']}#{current_user.email}#{utctime}")
   end
 
   ##
