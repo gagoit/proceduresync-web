@@ -115,6 +115,7 @@ class Document
   index({belongs_to_paths: 1})
   index({approved_paths: 1})
   index({not_approved_paths: 1})
+  index({created_at: -1})
 
   scope :active, -> {where({active: true})}
   scope :inactive, -> {where({active: false})}
@@ -489,6 +490,7 @@ class Document
   ##
   def to_json(current_user, curr_ver = nil, options = {} )
     curr_ver ||= self.current_version
+    comp = options[:company] || company
 
     result = {
       uid: self.id.to_s,
@@ -514,7 +516,7 @@ class Document
     if options[:show_is_unread]
       result[:is_unread] = !(current_user.read_doc?(self))
 
-      if result[:is_unread] && !current_user.is_required_to_read_doc?(company, self)
+      if result[:is_unread] && !current_user.is_required_to_read_doc?(comp, self)
         result[:is_unread] = false
       end
     end

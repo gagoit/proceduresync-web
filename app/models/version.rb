@@ -71,6 +71,9 @@ class Version
 
   belongs_to :document
 
+  index({document_id: 1, box_status: 1})
+  index({document_id: 1, box_status: 1, created_at: -1})
+
   validates_presence_of :document_id, :file_url
 
   #validates :version, presence: true, if: :version_is_required?
