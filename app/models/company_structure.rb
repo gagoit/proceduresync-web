@@ -6,6 +6,8 @@ class CompanyStructure
   field :name, type: String
   field :path, type: String
 
+  field :updated_by_id, type: String
+
   belongs_to :company
 
   has_many :childs, class_name: "CompanyStructure", order: [:name, :asc]
@@ -21,7 +23,8 @@ class CompanyStructure
   validates_uniqueness_of :type, scope: :company_id, :if => :is_company_node?
 
   index({type: 1, parent_id: 1, company_id: 1})
-
+  index({parent_id: 1})
+  index({company_id: 1})
   index({path: 1, company_id: 1})
 
   Company::STRUCTURES.keys.each do |e|
@@ -64,7 +67,7 @@ class CompanyStructure
   after_create do
     #Update User's area if these areas are parent area of new organisation structure
     if parent && parent.path
-      CompanyService.delay.update_areas_when_create_new_sub_sections(company, self)
+      CompanyService.delay.update_areas_when_create_new_sub_sections(company_id, self)
     end
   end
 

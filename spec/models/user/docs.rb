@@ -7,9 +7,7 @@ describe "User: docs:" do
     end
 
     it "when user has favourited no doc" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
 
       new_docs = @user.docs(@company, "favourite")
 
@@ -18,9 +16,7 @@ describe "User: docs:" do
     end
 
     it "when user has favourited one accountable doc and user has not read it yet" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
 
       @user.favour_document!(@doc)
 
@@ -33,9 +29,7 @@ describe "User: docs:" do
     end
 
     it "when user has favourited one doc and user has already read it" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
 
       @user.favour_document!(@doc)
       @user.read_document!(@doc)
@@ -55,9 +49,7 @@ describe "User: docs:" do
     end
 
     it "when user has read no doc" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
       @user.reload
 
       new_docs = @user.docs(@company, "unread")
@@ -69,9 +61,7 @@ describe "User: docs:" do
     end
 
     it "when user can see one doc, and user has read one doc" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
       @user.reload
 
       new_docs = @user.docs(@company, "unread")
@@ -83,9 +73,7 @@ describe "User: docs:" do
     end
 
     it "when user can see two docs, and user has read one doc" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
 
       @doc1.belongs_to_paths << u_comp.company_path_ids
       @doc1.save
@@ -108,9 +96,7 @@ describe "User: docs:" do
     end
 
     it "when user has no private doc" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @all_paths.keys.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
 
       new_docs = @user.docs(@company, "private")
 
@@ -119,9 +105,7 @@ describe "User: docs:" do
     end
 
     it "when user has one private doc" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @all_paths.keys.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
 
       private_doc, private_version = create_private_doc(@user, @company)
 
@@ -140,9 +124,7 @@ describe "User: docs:" do
     end
 
     it "when user is not approver, user will see no docs" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
 
       new_docs = @user.docs(@company, "to_approve")
 
@@ -150,13 +132,12 @@ describe "User: docs:" do
     end
 
     it "when user is approver, however no docs are in his org part, user will see no docs" do
-      u_comp = @user.user_company(@company)
       perm = @company.permissions.where(code: Permission::STANDARD_PERMISSIONS[:approver_user][:code]).first
-
-      u_comp.company_path_ids = @all_paths.keys.first
-      u_comp.permission_id = perm.id
-      u_comp.approver_path_ids = (@all_paths.keys - @doc.belongs_to_paths)
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {
+        company_path_ids: @all_paths.keys.first,
+        permission_id: perm.id,
+        approver_path_ids: (@all_paths.keys - @doc.belongs_to_paths)
+        })
 
       new_docs = @user.docs(@company, "to_approve")
 
@@ -164,13 +145,12 @@ describe "User: docs:" do
     end
 
     it "when user is approver, and has one doc in his org part, user will see this doc" do
-      u_comp = @user.user_company(@company)
       perm = @company.permissions.where(code: Permission::STANDARD_PERMISSIONS[:approver_user][:code]).first
-
-      u_comp.company_path_ids = @all_paths.keys.first
-      u_comp.permission_id = perm.id
-      u_comp.approver_path_ids = [@doc.belongs_to_paths.first]
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {
+        company_path_ids: @all_paths.keys.first,
+        permission_id: perm.id,
+        approver_path_ids: [@doc.belongs_to_paths.first]
+        })
 
       @user.reload
 
@@ -186,13 +166,12 @@ describe "User: docs:" do
 
       @doc1.destroy
 
-      u_comp = @user.user_company(@company)
       perm = @company.permissions.where(code: Permission::STANDARD_PERMISSIONS[:approver_user][:code]).first
-
-      u_comp.company_path_ids = @all_paths.keys.first
-      u_comp.permission_id = perm.id
-      u_comp.approver_path_ids = @doc.belongs_to_paths
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {
+        company_path_ids: @all_paths.keys.first,
+        permission_id: perm.id,
+        approver_path_ids: @doc.belongs_to_paths
+        })
 
       @user.reload
 
@@ -212,13 +191,13 @@ describe "User: docs:" do
       # another approver set this doc as not-accountable for the ares that user can approve for
       @user_1 = create :user, token: "#{@user.token}2", company_ids: [@company.id], admin: false
       @company.reload
-      u_comp_1 = @user_1.user_company(@company)
-      perm = @company.permissions.where(code: Permission::STANDARD_PERMISSIONS[:approver_user][:code]).first
 
-      u_comp_1.company_path_ids = @all_paths.keys.first
-      u_comp_1.permission_id = perm.id
-      u_comp_1.approver_path_ids = @doc.belongs_to_paths
-      u_comp_1.save
+      perm = @company.permissions.where(code: Permission::STANDARD_PERMISSIONS[:approver_user][:code]).first
+      u_comp_1 = assign_user_to_path(@user_1, @company, {
+        company_path_ids: @all_paths.keys.first,
+        permission_id: perm.id,
+        approver_path_ids: @doc.belongs_to_paths
+        })
 
       @user_1.reload
 
@@ -250,9 +229,9 @@ describe "User: docs:" do
     end
 
     it "User can see to be approve documents if these are not restricted and not accountable for user" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = (@all_paths.keys - @doc.belongs_to_paths).first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {
+        company_path_ids: (@all_paths.keys - @doc.belongs_to_paths).first
+        })
       @user.reload
 
       new_docs = @user.docs(@company, "all")
@@ -268,9 +247,9 @@ describe "User: docs:" do
     end
 
     it "User can see to be approve documents if these are not restricted and accountable for user (not approved for user's area)" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {
+        company_path_ids: @doc.belongs_to_paths.first
+        })
       @user.reload
 
       new_docs = @user.docs(@company, "all")
@@ -284,9 +263,9 @@ describe "User: docs:" do
     end
 
     it "User can see to be approve documents if these are restricted but for user's area and accountable for user (not approved for user's area)" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {
+        company_path_ids: @doc.belongs_to_paths.first
+        })
       @user.reload
 
       @doc.restricted = true
@@ -303,9 +282,9 @@ describe "User: docs:" do
     end
 
     it "User can not see to be approve documents if these are restricted but not restricted for user's area" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = (@all_paths.keys - @doc.belongs_to_paths).first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {
+        company_path_ids: (@all_paths.keys - @doc.belongs_to_paths).first
+        })
       @user.reload
 
       @doc.restricted = true

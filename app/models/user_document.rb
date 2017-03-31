@@ -17,7 +17,9 @@ class UserDocument
   INDEXES = [
     {user_id: 1, is_accountable: 1, updated_at: 1},
     {user_id: 1, is_favourited: 1},
-    {user_id: 1, is_accountable: 1, updated_at: 1, is_favourited: 1}
+    {user_id: 1, is_accountable: 1, updated_at: 1, is_favourited: 1},
+    {user_id: 1, document_id: 1},
+    {document_id: 1, is_accountable: 1}
   ]
 
   INDEXES.each do |ind|

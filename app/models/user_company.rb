@@ -89,11 +89,11 @@ class UserCompany
     end
 
     if company_path_ids_changed?
-      NotificationService.delay.users_has_changed_company_path([user])
+      NotificationService.delay(queue: "notification_and_convert_doc").users_has_changed_company_path([user])
 
-      UserService.delay.update_user_documents({user: user, company: company})
+      UserService.delay(queue: "update_data").update_user_documents({user: user, company: company})
     elsif can_see_report_changed?
-      NotificationService.delay.user_has_been_changed_report_permission(user)
+      NotificationService.delay(queue: "notification_and_convert_doc").user_has_been_changed_report_permission(user)
     end
 
     if user_type_changed?

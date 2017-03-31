@@ -23,7 +23,11 @@ class Category
   # Calculate number of unread document that a user unread
   ##
   def unread_number(user)
-    active_doc_ids = documents.active.map(&:id)
-    (active_doc_ids - user.read_document_ids).length
+    active_doc_ids = documents.active.pluck(:id)
+
+    accountable_doc_ids_for_user = user.assigned_docs(company).where(:id.in => active_doc_ids).pluck(:id)
+    user.read_document_ids.concat(user.private_document_ids)
+
+    (accountable_doc_ids_for_user - user.read_document_ids).length
   end
 end

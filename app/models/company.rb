@@ -186,7 +186,7 @@ class Company
 
   after_save do
     if name_changed? || logo_file_name_changed? || active_changed?
-      NotificationService.delay.company_has_been_changed(self)
+      NotificationService.delay(queue: "notification_and_convert_doc").company_has_been_changed(self)
     end
 
     if name_changed?
@@ -199,10 +199,10 @@ class Company
       removed_user_ids = (old_user_ids-new_user_ids)
       added_user_ids = (new_user_ids-old_user_ids)
 
-      NotificationService.delay.users_companies_have_been_changed([self.id], removed_user_ids, :removed)
-      NotificationService.delay.users_companies_have_been_changed([self.id], added_user_ids, :added)
+      NotificationService.delay(queue: "notification_and_convert_doc").users_companies_have_been_changed([self.id], removed_user_ids, :removed)
+      NotificationService.delay(queue: "notification_and_convert_doc").users_companies_have_been_changed([self.id], added_user_ids, :added)
 
-      User.delay.remove_invalid_docs((old_user_ids-new_user_ids), self.document_ids)
+      User.delay(queue: "update_data").remove_invalid_docs((old_user_ids-new_user_ids), self.document_ids)
 
       if removed_user_ids.length > 0
         User.where(:id.in => removed_user_ids).each do |u|
@@ -244,21 +244,23 @@ class Company
   # Create indexes for some dynamic collections
   ##
   def create_indexes_for_dynamic_collections
-    session = Mongoid::Sessions.default
+    session = Mongoid::Clients.default
 
     #ActivityLog
-    comp_activity_logs = session["#{self.id}_activity_logs"]
+    # comp_activity_logs = session["#{self.id}_activity_logs"]
 
-    ActivityLog::INDEXES.each do |ind|
-      comp_activity_logs.indexes.create(ind)
-    end
+    # ActivityLog::INDEXES.each do |ind|
+    #   comp_activity_logs.indexes.create(ind)
+    # end
+    ActivityLog.with(collection: "#{self.id}_activity_logs").create_indexes
 
     #UserDocument
-    comp_user_documents = session["#{self.id}_user_documents"]
+    # comp_user_documents = session["#{self.id}_user_documents"]
 
-    UserDocument::INDEXES.each do |ind|
-      comp_user_documents.indexes.create(ind)
-    end
+    # UserDocument::INDEXES.each do |ind|
+    #   comp_user_documents.indexes.create(ind)
+    # end
+    UserDocument.with(collection: "#{self.id}_user_documents").create_indexes
 
   end
 
@@ -625,10 +627,12 @@ class Company
   # log_hash = {user: user_id, target_document_id, target_user_id, action: ActivityLog::ACTIONS[:unfavourite_document]}
   ##
   def create_logs(log_hash)
-    puts "---create_logs for company #{self.id} #{self.name}---"
-    puts log_hash
+    # puts "---create_logs for company #{self.id} #{self.name}---"
+    # puts log_hash
+    log_hash[:company_id] = self.id
 
-    ActivityLog.with(collection: "#{self.id}_activity_logs").create(log_hash)
+    # ActivityLog.with(collection: "#{self.id}_activity_logs").create(log_hash)
+    LogService.delay.create_log(self.id, log_hash)
   end
 
   def standard_permissions

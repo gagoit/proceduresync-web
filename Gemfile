@@ -27,7 +27,7 @@ gem 'jbuilder', '~> 1.2'
 gem 'haml-rails'
 gem 'rails_config'
 gem 'nokogiri'
-gem 'mongoid', '~> 4.0.0.beta1', github: 'mongoid/mongoid'
+gem 'mongoid', '~> 5.2.0'
 gem 'bson_ext'
 gem 'rails_admin', :git => 'git://github.com/sferik/rails_admin.git'
 gem 'bootstrap-sass', :git => 'https://github.com/twbs/bootstrap-sass'
@@ -40,7 +40,7 @@ gem 'rails-api'
 
 gem "mongoid-paperclip", :require => "mongoid_paperclip"
 gem 'aws-sdk', '~> 1.3.4'
-gem 'mongoid-grid_fs', github: 'ahoward/mongoid-grid_fs'
+# gem 'mongoid-grid_fs', github: 'ahoward/mongoid-grid_fs'
 gem 'rabl'
 # Also add either `oj` or `yajl-ruby` as the JSON parser
 gem 'oj'
@@ -99,12 +99,12 @@ gem 'airbrake', '3.0.9'
 
 gem 'aws-ses', '~> 0.4.4', require: 'aws/ses'
 
-gem 'mongo'
+gem 'mongo', '~> 2.4.1'
 gem 'whenever'
 
 # background processing with DJ
-gem 'delayed_job'
-gem 'delayed_job_mongoid'
+gem 'delayed_job', '~> 4.1.1'
+gem 'delayed_job_mongoid', '~> 2.2.0'
 
 gem 'box_view'
 

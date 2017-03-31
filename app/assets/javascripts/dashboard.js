@@ -9,6 +9,7 @@ var Dashboard = {
     this.dashboard_page = $("#dashboard_page");
     this.unread_docs = this.dashboard_page.find(".unread-docs");
     this.to_approve_docs = this.dashboard_page.find(".to-approve-docs");
+    this.staff_with_outstanding_documents = this.dashboard_page.find("#staff_with_outstanding_documents");
 
     this.init_events();
   },
@@ -23,15 +24,28 @@ var Dashboard = {
 
       /** Unread Docs **/
       if(this.unread_docs.length > 0){
-        this.load_docs(this.unread_docs);
+        this.load_docs(this.unread_docs, 1);
       }
 
       /** Unread Docs **/
       if(this.to_approve_docs.length > 0){
-        this.load_docs(this.to_approve_docs);
+        this.load_docs(this.to_approve_docs, 1);
+      }
+
+      /** staff_with_outstanding_documents **/
+      if(this.staff_with_outstanding_documents.length > 0){
+        self.scrollLoadContentInit(self.staff_with_outstanding_documents);
+
+        setTimeout(function(){
+          self.load_docs(self.staff_with_outstanding_documents, 1);
+        }, 1000);
       }
 
       this.auto_restructure_dashboard();
+
+      // $(window).resize(function() {
+      //   self.auto_restructure_dashboard();
+      // }).resize();
     }
 
     /** .dropdown-notifications-li **/
@@ -98,13 +112,18 @@ var Dashboard = {
   /**
   *
   **/
-  load_docs: function(div){
+  load_docs: function(div, currentPage){
     var self = this;
     Proceduresync.show_loading();
 
+    var data = {};
+    if(currentPage){
+      data.page = currentPage;
+    }
+
     $.ajax(div.attr("data-url"), {
       type: 'GET',
-      data: {}
+      data: data
     }).done(function(ev){
       if(ev.docs_html){
         $(ev.docs_html).appendTo(div);
@@ -113,12 +132,40 @@ var Dashboard = {
           div.parent().remove();
         }
 
-        self.auto_restructure_dashboard();
+        if(currentPage == 1){
+          self.auto_restructure_dashboard();
+        }
       }else{
-        AlertMessage.show("danger", ev.message);
+        div.closest(".table-responsive").find(".loading-wrapper").remove();
+        if(ev.message){
+          AlertMessage.show("danger", ev.message);
+        }
+      }
+
+      if(div.data("scrollLoadEnable") == "true"){
+        div.data("scrollLoading", "false");
+        div.data("currentPage", currentPage);
       }
 
       Proceduresync.hide_loading();
+    });
+  },
+
+  /**
+  * Scroll to load content in div
+  **/
+  scrollLoadContentInit: function(div) {
+    var self = this;
+    var scrollLoading = div.data("scrollLoading") || "false";
+    var currentPage = parseInt(div.data("currentPage"), 10) || 1;
+    var parent = $(div).closest(".table-responsive");
+
+    $(parent).scroll(function() {
+      if(scrollLoading == "false" && ($(parent).scrollTop() + $(parent).innerHeight()  >  this.scrollHeight - 20) ) {
+        // ajax call get data from server and append to the div
+        currentPage += 1;
+        self.load_docs(div, currentPage);
+      }
     });
   },
 
@@ -156,7 +203,7 @@ var Dashboard = {
   * balance the height of two column: left-column, right-column
   **/
   auto_restructure_dashboard: function(){
-    if(this.dashboard_page.length == 0){
+    if(this.dashboard_page.length == 0 || $(window).width() < 1200){
       return;
     }
     var self = this;

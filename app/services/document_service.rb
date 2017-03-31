@@ -215,6 +215,73 @@ class DocumentService < BaseService
       doc.save
     end
   end
+
+  ##
+  #  - add_accountability: "Make document(s) accountable document(s) for the following users"
+  ##
+  def self.add_accountable_to_paths(company, document, paths, options={})
+    user_ids_in_paths = options.has_key?(:user_ids_in_paths) ? options[:user_ids_in_paths] : company.user_companies.where(:company_path_ids.in => paths).pluck(:user_id)
+
+    return if user_ids_in_paths.blank?
+
+    already_available_for_user_ids = document.company_users(company).accountable.pluck(:user_id)
+    new_available_for_user_ids = user_ids_in_paths - already_available_for_user_ids
+
+    return if new_available_for_user_ids.blank?
+
+    new_available_for_user_ids.each do |user_id|
+      document.create_user_document(company, {user_id: user_id, is_accountable: true})
+    end
+
+    NotificationService.delay(queue: "notification_and_convert_doc", run_at: (document.effective_time.try(:utc) || Time.now.utc)).document_is_created(document, new_available_for_user_ids)
+    company.user_companies.where(:user_id.in => new_available_for_user_ids).update_all(need_update_docs_count: true)
+
+    ## Create notification in web admin for unread accountable documents
+    DocumentService.delay(queue: "notification_and_convert_doc").create_unread_doc_noti_in_web_admin(
+        document, 
+        {
+          new_version: false,
+          new_avai_user_ids: new_available_for_user_ids
+        }
+      )
+  end
+
+  ##
+  # - remove_accountability: "Make document(s) NOT accountable document(s) for the following users"
+  ##
+  def self.remove_accountability_of_paths(company, document, paths, options={})
+    user_ids_in_paths = options.has_key?(:user_ids_in_paths) ? options[:user_ids_in_paths] : company.user_companies.where(:company_path_ids.in => paths).pluck(:user_id)
+
+    return if user_ids_in_paths.blank?
+
+    document.company_users(company).where(:user_id.in => user_ids_in_paths).update_all({updated_at: Time.now.utc, is_accountable: false})
+
+    NotificationService.delay(queue: "notification_and_convert_doc").remove_accountable(user_ids_in_paths, [document.id])
+    company.user_companies.where(:user_id.in => user_ids_in_paths).update_all(need_update_docs_count: true)
+  end
+
+  ##
+  # Create notification in web admin for unread accountable documents
+  ##
+  def self.create_unread_doc_noti_in_web_admin document_id, options = {}
+    document = document_id.is_a?(Document) ? document_id : Document.find(document_id)
+
+    if !document.is_private && document.is_not_restrict_viewing
+      accountable_user_ids = document.available_for_user_ids - document.read_user_ids
+      accountable_user_ids.each do |u_id|
+        noti = Notification.find_or_initialize_by({user_id: u_id, company_id: document.company_id, 
+          type: Notification::TYPES[:unread_document][:code], document_id: document.id})
+
+        noti.created_at = Time.now.utc
+
+        if options[:new_version] || (!noti.new_record? && (options[:new_avai_user_ids] || []).include?(u_id))
+          noti.status = Notification::UNREAD_STATUS
+        end
+
+        noti.save
+      end
+    end
+  end
 end
 
 # ##

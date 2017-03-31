@@ -93,7 +93,7 @@ class CompaniesController < ApplicationController
 
       child_type = Company::STRUCTURES[parent_type.to_sym][:child]
 
-      child = parent.childs.create({ name: params[:name], type: child_type, company_id: @company.id })
+      child = parent.childs.create({ name: params[:name], type: child_type, company_id: @company.id, updated_by_id: current_user.id.to_s })
 
       if child.valid?
         obj_name = @company.try("#{child_type}_label".to_sym) || child_type.titleize
@@ -205,7 +205,7 @@ class CompaniesController < ApplicationController
 
 
   def replicate_accountable_documents
-    result = CompanyService.replicate_accountable_documents(current_company, params)
+    result = CompanyService.validate_replicate_accountable_documents(current_company, params, updated_by_id: current_user.id)
     render json: result
   end
 

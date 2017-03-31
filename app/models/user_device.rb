@@ -45,7 +45,7 @@ class UserDevice
 
   after_save do
     if token_changed? && token
-      NotificationService.delay.register_device(user, token, app_access_token)
+      NotificationService.delay(queue: "notification_and_convert_doc").register_device(user, token, app_access_token)
 
       UserDevice.delay.disable_invalid_devices(self)
     end    
@@ -76,7 +76,7 @@ class UserDevice
   end
 
   def destroy
-    NotificationService.delay.register_device(user, token, app_access_token, false)
+    NotificationService.delay(queue: "notification_and_convert_doc").register_device(user, token, app_access_token, false)
 
     super
   end

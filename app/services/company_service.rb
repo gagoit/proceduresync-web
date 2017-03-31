@@ -141,9 +141,11 @@ class CompanyService < BaseService
   #   to the newly created sections “Rail > Rail Operations > Train Driver Mainline > Deepdale > A”
   # - Then if new sub sections B is added to “Rail > Rail Operations > Train Driver Mainline > Deepdale”, we will do nothing
   ##
-  def self.update_areas_when_create_new_sub_sections(company, node)
+  def self.update_areas_when_create_new_sub_sections(company_id, node)
     return unless node && node.parent && (parent_path = node.parent.path)
-      
+    
+    company = company_id.is_a?(Company) ? company_id : Company.find(company_id)
+
     company.user_companies.where(:company_path_ids => parent_path).each do |u_comp|
       u_comp.company_path_ids = node.path
       u_comp.save
@@ -158,7 +160,12 @@ class CompanyService < BaseService
         doc.approved_paths << node.path
       end
 
-      doc.save(validate: false)
+      # Don't use Actice Record Save operation to Reduce update_user_documents query
+      doc.correct_paths
+      Document.where(:id => doc.id).update_all(belongs_to_paths: doc.belongs_to_paths, approved_paths: doc.approved_paths, 
+            not_approved_paths: doc.not_approved_paths, not_accountable_for: doc.not_accountable_for)
+      doc.create_logs({ user_id: node.updated_by_id, action: ActivityLog::ACTIONS[:updated_document], 
+            attrs_changes: doc.changes })
     end
 
     company.user_companies.where(:approver_path_ids.in => [parent_path]).each do |u_comp|
@@ -179,12 +186,14 @@ class CompanyService < BaseService
     end
   end
 
-  # Have the facility for Super Admin to make one sections accountable documents the same as another.  
-  # For instance, when we add a new section to the system we can make it’s accountable documents be the same as another current section 
-  # so that we don’t have to go through and manually do it.  
-  def self.replicate_accountable_documents(company, params)
+  def self.validate_replicate_accountable_documents(company, params, updated_by_id: nil, just_validate: false)
+    if params[:from_section] == params[:to_section]
+      return {success: false, message: check_comp_path[:message], error_code: "error_company_paths"}
+    end
+
     from_section_id = params[:from_section]
     to_section_id = params[:to_section]
+    updated_by_id ||= User.admin.first.try(:id)
 
     check_comp_path = User.check_company_path_ids(company, from_section_id)
     unless check_comp_path[:valid]
@@ -196,10 +205,43 @@ class CompanyService < BaseService
       return {success: false, message: check_comp_path[:message], error_code: "error_company_paths"}
     end
 
+    unless just_validate
+      self.delay(queue: "update_data").replicate_accountable_documents(company, params, updated_by_id: updated_by_id, need_validate: false)
+    end
+
+    {success: true, message: "Replicate Accountable Documents have been done successfully"}
+  end
+
+  # Have the facility for Super Admin to make one sections accountable documents the same as another.  
+  # For instance, when we add a new section to the system we can make it’s accountable documents be the same as another current section 
+  # so that we don’t have to go through and manually do it.  
+  def self.replicate_accountable_documents(company, params, updated_by_id: nil, need_validate: true)
+    if need_validate
+      result = self.validate_replicate_accountable_documents(company, params, updated_by_id: updated_by_id, just_validate: true)
+      return result unless result[:success]
+    end
+
+    from_section_id = params[:from_section]
+    to_section_id = params[:to_section]
+    updated_by_id ||= User.admin.first.try(:id)
+
     need_save = false
+    use_active_record_save = false
+    accountable_for_users_changed = false
+    # => Find the way to reduce AR Save operation -> reduce update_user_documents job
+      # We need to run update_user_documents job when approved_paths change
+        # approved_paths change when:
+          #1 - Doc need approval and Doc is approved for from_section_id
+          #2 - Doc doesn't approval and Doc is belongs to from_section_id
+        # *** ( but in this case: only the belongs_to_paths & approved_paths are changed so 
+        #       we just add the users in from_section_id path to document's user_document relationship )
+
+    user_ids_in_to_section = company.user_companies.where(:company_path_ids => to_section_id).pluck(:user_id)
 
     company.documents.where(:belongs_to_paths.in => [from_section_id, to_section_id]).each do |doc|
       need_save = false
+      use_active_record_save = false
+      accountable_for_users_changed = false
 
       if doc.belongs_to_paths.include?(from_section_id)
         unless doc.belongs_to_paths.include?(to_section_id)
@@ -210,13 +252,32 @@ class CompanyService < BaseService
         if doc.approved_paths.include?(from_section_id) && !doc.approved_paths.include?(to_section_id)
           doc.approved_paths << to_section_id
           need_save = true
+          accountable_for_users_changed = true
         end
       else
         doc.belongs_to_paths.delete(to_section_id)
-        need_save = true        
+        need_save = true
+        use_active_record_save = true #1 & 2
       end
 
-      doc.save(validate: false) if need_save
+      next unless need_save
+
+      if use_active_record_save
+        doc.save(validate: false)
+
+      else
+        # Don't use Actice Record Save operation to Reduce update_user_documents query
+        doc.correct_paths
+        Document.where(:id => doc.id).update_all(belongs_to_paths: doc.belongs_to_paths, approved_paths: doc.approved_paths, 
+              not_approved_paths: doc.not_approved_paths, not_accountable_for: doc.not_accountable_for)
+        doc.create_logs({ user_id: updated_by_id, action: ActivityLog::ACTIONS[:updated_document], 
+              attrs_changes: doc.changes })
+
+        # Update UserDocument relationship for syncing
+        next if user_ids_in_to_section.blank? || !accountable_for_users_changed || doc.is_private?
+
+        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, [to_section_id], {user_ids_in_paths: user_ids_in_to_section})
+      end
     end
 
     {success: true, message: "Replicate Accountable Documents have been done successfully"}

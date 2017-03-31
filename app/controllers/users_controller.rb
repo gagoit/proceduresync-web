@@ -411,7 +411,7 @@ class UsersController < ApplicationController
 
     u_d = @user.devices.find(params[:user_device_id])
     
-    NotificationService.delay.remote_wipe_device(@user, u_d.token, u_d.app_access_token)
+    NotificationService.delay(queue: "notification_and_convert_doc").remote_wipe_device(@user, u_d.token, u_d.app_access_token)
     @user.devices.where(id: u_d.id).update_all(deleted: true)
 
     render json: {success: true, message: t("user.devices.remote_wipe.success")}
@@ -430,7 +430,7 @@ class UsersController < ApplicationController
 
     u_d = @user.devices.find(params[:user_device_id])
     
-    NotificationService.delay.sent_test_notification(@user, u_d.token, u_d.app_access_token)
+    NotificationService.delay(queue: "notification_and_convert_doc").sent_test_notification(@user, u_d.token, u_d.app_access_token)
 
     render json: {success: true, message: t("user.devices.sent_notification.success")}
   end

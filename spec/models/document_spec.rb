@@ -1,50 +1,51 @@
-# require 'spec_helper'
+require 'spec_helper'
 
-# describe "Document" do
-# 	def clean_data
-# 		Company.destroy_all
-# 		User.destroy_all
-# 		Category.destroy_all
-# 		Document.destroy_all
-# 		Version.destroy_all
-# 	end
+describe "Document" do
+  def clean_data
+    Version.destroy_all
+    Document.destroy_all
+    Category.destroy_all
+    User.destroy_all
+    Company.destroy_all
+  end
 
-# 	def create_data
-# 		clean_data
-		
-# 		@company = create :company
-# 		@category = create :category
+  def create_data
+    clean_data
+    
+    @company = create :company
+    @category = create :category, company_id: @company.id
 
-# 		@user = create :user
+    @user = create :user
 
-# 		@doc = create :document, category_id: @category.id, company_id: @company.id
-# 		@version = create :version, document_id: @doc.id
-# 	end
-# 	describe "has_changed!" do
-# 		context "ok" do
-# 			before(:each) do
-# 				create_data
-# 			end
+    @doc = create :document, category_id: @category.id, company_id: @company.id
+    @version = create :version, document_id: @doc.id
+  end
 
-# 			it "edit version" do
-# 				last_update = @doc.updated_at
-# 				@version.version = "version 222"
-# 				@version.save
+  describe "has_changed!" do
+    context "ok" do
+      before(:each) do
+        create_data
+      end
 
-# 				@doc.reload
+      it "edit version" do
+        last_update = @doc.updated_at
+        @version.version = "version 222"
+        @version.save
 
-# 				expect(@doc.updated_at).to_not eq(last_update)
-# 			end
+        @doc.reload
 
-# 			it "edit category" do
-# 				last_update = @doc.updated_at
-# 				@category.name = "version 222"
-# 				@category.save
+        expect(@doc.updated_at).to_not eq(last_update)
+      end
 
-# 				@doc.reload
+      it "edit category" do
+        last_update = @doc.updated_at
+        @category.name = "version 222"
+        @category.save
 
-# 				expect(@doc.updated_at).to_not eq(last_update)
-# 			end
-# 		end
-# 	end
-# end
+        @doc.reload
+
+        expect(@doc.updated_at).to_not eq(last_update)
+      end
+    end
+  end
+end

@@ -186,7 +186,7 @@ class User
       u_d.update_attributes({platform: platform, device_name: device_name, os_version: os_version, deleted: false})
 
       unless is_new_device
-        NotificationService.delay.register_device(self, push_token, app_access_token)
+        NotificationService.delay(queue: "notification_and_convert_doc").register_device(self, push_token, app_access_token)
         UserDevice.delay.disable_invalid_devices(u_d)
       end
 
@@ -199,7 +199,7 @@ class User
 
     sent_noti = false
     if active_changed? && !active
-      NotificationService.delay.user_is_inactive(self)
+      NotificationService.delay(queue: "notification_and_convert_doc").user_is_inactive(self)
       sent_noti = true
     end
 
@@ -220,10 +220,10 @@ class User
       old_comp_ids = self.company_ids_was || []
       new_comp_ids = self.company_ids || []
 
-      User.delay.update_companies_of_user(self, old_comp_ids, new_comp_ids)
+      User.delay(queue: "update_data").update_companies_of_user(self, old_comp_ids, new_comp_ids)
     elsif name_changed?
       unless sent_noti
-        NotificationService.delay.user_has_changed_info(self)
+        NotificationService.delay(queue: "notification_and_convert_doc").user_has_changed_info(self)
         sent_noti = true
       end
     end
@@ -400,7 +400,7 @@ class User
       self.read_document_ids.uniq!
       self.save(validate: false)
 
-      NotificationService.delay.mark_all_as_read(self)
+      NotificationService.delay(queue: "notification_and_convert_doc").mark_all_as_read(self)
     end
 
     {result_code: SUCCESS_CODES[:success]}
@@ -412,6 +412,10 @@ class User
   def favour_document!(doc, action_time_str = nil)
     if doc.is_expiried
       return {error: I18n.t("document.is_expiried"), error_code: ERROR_CODES[:refresh_data] }
+    end
+
+    if doc.is_private && doc.private_for_id != id
+      return {error: I18n.t("document.is_private"), error_code: ERROR_CODES[:refresh_data] }
     end
 
     action_time = nil
@@ -448,6 +452,10 @@ class User
   def unfavour_document!(doc, action_time_str = nil)
     if doc.is_expiried
       return {error: I18n.t("document.is_expiried"), error_code: ERROR_CODES[:refresh_data] }
+    end
+
+    if doc.is_private && doc.private_for_id != id
+      return {error: I18n.t("document.is_private"), error_code: ERROR_CODES[:refresh_data] }
     end
 
     action_time = nil
@@ -603,6 +611,7 @@ class User
         all_doc_ids = company.documents.where(query).pluck(:id)
 
         new_doc_ids = company_documents(company).available_for_sync.where({:updated_at.gte => last_timestamp}).pluck(:document_id)
+
         need_sync_doc_ids = (new_doc_ids & all_doc_ids)
 
         company.documents.where({:id.in => need_sync_doc_ids})
@@ -1001,10 +1010,10 @@ class User
     removed_comp_ids = (old_comp_ids-new_comp_ids)
     added_comp_ids = (new_comp_ids-old_comp_ids)
     if new_comp_ids.blank?
-      NotificationService.delay.user_is_inactive(user)
+      NotificationService.delay(queue: "notification_and_convert_doc").user_is_inactive(user)
     elsif user.active
-      NotificationService.delay.users_companies_have_been_changed(removed_comp_ids, [user.id], :removed)
-      NotificationService.delay.users_companies_have_been_changed(added_comp_ids, [user.id], :added)
+      NotificationService.delay(queue: "notification_and_convert_doc").users_companies_have_been_changed(removed_comp_ids, [user.id], :removed)
+      NotificationService.delay(queue: "notification_and_convert_doc").users_companies_have_been_changed(added_comp_ids, [user.id], :added)
     end
 
     invalid_doc_ids = []
@@ -1391,8 +1400,10 @@ class User
   ##
   def create_logs(company, log_hash)
     log_hash[:user_id] = self.id
+    log_hash[:company_id] = company.id
 
-    ActivityLog.with(collection: "#{company.id}_activity_logs").create(log_hash)
+    # ActivityLog.with(collection: "#{company.id}_activity_logs").create(log_hash)
+    LogService.delay.create_log(company.id, log_hash)
   end
 
   ##

@@ -2,10 +2,9 @@ require 'spec_helper'
 
 describe "Category API" do
   before(:each) do
-    Company.destroy_all
-    
-    @company = create :company
+    create_default_data
   end
+
   ##
   # Categories
   # /categories.json
@@ -21,121 +20,105 @@ describe "Category API" do
   describe "GET categories.json" do
     context "success when has only one category" do
       before(:each) do
-        User.destroy_all
-        Document.destroy_all
-        Version.destroy_all
-        Category.destroy_all
-
-        @user = create :user, company_ids: [@company.id]
-        @category = create :category
-
-        @doc = create :document, company_id: @company.id, category_id: @category.id
-        version = create :version, document_id: @doc.id
+        u_comp = @user.user_company(@company)
+        u_comp.company_path_ids = @doc.belongs_to_paths.first
+        u_comp.save
       end
 
-      it "with one doc and user has not read this doc" do
-        @user.update_attribute(:read_document_ids, [])
+      context "with one accountable doc" do
+        before(:each) do
+          @version1.destroy
+          @doc1.destroy
+        end
 
-        get 'api/categories.json', { token: @user.token }
-        
-        expect(json["categories"].length).to eql(1)
+        it "return category info with unread_number = 1 if user has not read this doc" do
+          @user.update_attribute(:read_document_ids, [])
 
-        cate = json["categories"][0]
+          get 'api/categories.json', { token: @user.token }
+          
+          expect(json["categories"].length).to eql(1)
 
-        expect(cate["name"]).to eql(@category.name)
-        expect(cate["unread_number"]).to eql(@category.unread_number(@user))
+          expect(json["categories"][0]["name"]).to eql(@category.name)
+          expect(json["categories"][0]["unread_number"]).to eql(1)
 
-        expect(json["result_code"]).to eql(SUCCESS_CODES[:success])
-      end
+          expect(json["result_code"]).to eql(SUCCESS_CODES[:success])
+        end
 
-      it "with one doc and user has already read this doc" do
-        @user.update_attribute(:read_document_ids, [@doc.id])
-        
-        get 'api/categories.json', { token: @user.token }
-        
-        expect(json["categories"].length).to eql(1)
+        it "return category info with unread_number = 0 if user has already read this doc" do
+          @user.update_attribute(:read_document_ids, [@doc.id])
+          
+          get 'api/categories.json', { token: @user.token }
+          
+          expect(json["categories"].length).to eql(1)
 
-        cate = json["categories"][0]
-
-        expect(cate["name"]).to eql(@category.name)
-        expect(cate["unread_number"]).to eql(@category.unread_number(@user))
+          expect(json["categories"][0]["name"]).to eql(@category.name)
+          expect(json["categories"][0]["unread_number"]).to eql(0)
+        end
       end
     end
 
     context "success when has two categories" do
       before(:each) do
-        User.destroy_all
-        Document.destroy_all
-        Version.destroy_all
-        Category.destroy_all
-
-        @user = create :user, company_ids: [@company.id]
-        @category = create :category, name: "Category 1"
-        @category1 = create :category, name: "Category 2"
-
-        @doc = create :document, company_id: @company.id, category_id: @category.id
-        version = create :version, document_id: @doc.id
-
-        @doc1 = create :document, company_id: @company.id, category_id: @category1.id
-        version1 = create :version, document_id: @doc1.id
+        @category1 = create :category, company_id: @company.id
       end
 
-      it "with each category has one doc and user has not read these docs" do
-        @user.update_attribute(:read_document_ids, [])
+      context "and each category has one accountable doc" do
+        before(:each) do
+          @doc1.category = @category1
+          @doc1.belongs_to_paths << @doc.belongs_to_paths.first
+          @doc1.save
 
-        get 'api/categories.json', { token: @user.token }
-        
-        expect(json["categories"].length).to eql(2)
+          u_comp = @user.user_company(@company)
+          u_comp.company_path_ids = @doc.belongs_to_paths.first
+          u_comp.save
+        end
 
-        cate1 = json["categories"][0]
+        it "return category info with correct unread_number for each category if user has not read these docs" do
+          @user.update_attribute(:read_document_ids, [])
 
-        expect(cate1["name"]).to eql(@category.name)
-        expect(cate1["unread_number"]).to eql(@category.unread_number(@user))
+          get 'api/categories.json', { token: @user.token }
+          
+          expect(json["categories"].length).to eql(2)
 
-        cate2 = json["categories"][1]
+          expect(json["categories"][0]["name"]).to eql(@category.name)
+          expect(json["categories"][0]["unread_number"]).to eql(1)
 
-        expect(cate2["name"]).to eql(@category1.name)
-        expect(cate2["unread_number"]).to eql(@category1.unread_number(@user))
-      end
+          expect(json["categories"][1]["name"]).to eql(@category1.name)
+          expect(json["categories"][1]["unread_number"]).to eql(1)
+        end
 
-      it "with each category has one doc and user has read a doc" do
-        @user.update_attribute(:read_document_ids, [@doc.id])
+        it "return category info with correct unread_number for each category if user has read a doc" do
+          @user.update_attribute(:read_document_ids, [@doc.id])
 
-        get 'api/categories.json', { token: @user.token }
-        
-        expect(json["categories"].length).to eql(2)
+          get 'api/categories.json', { token: @user.token }
+          
+          expect(json["categories"].length).to eql(2)
 
-        cate1 = json["categories"][0]
+          expect(json["categories"][0]["name"]).to eql(@category.name)
+          expect(json["categories"][0]["unread_number"]).to eql(0)
 
-        expect(cate1["name"]).to eql(@category.name)
-        expect(cate1["unread_number"]).to eql(@category.unread_number(@user))
+          expect(json["categories"][1]["name"]).to eql(@category1.name)
+          expect(json["categories"][1]["unread_number"]).to eql(1)
+        end
 
-        cate2 = json["categories"][1]
+        it "return correct category info when it has more than one accountable docs" do
+          @doc2 = create :document, category_id: @category.id, company_id: @company.id, belongs_to_paths: [@all_paths.keys.first]
+          @version2 = create :version, document_id: @doc2.id, box_status: "done", box_file_size: 100
+          
+          @doc2.curr_version = @version2.version
+          @doc1.belongs_to_paths << @doc.belongs_to_paths.first
+          @doc2.save
 
-        expect(cate2["name"]).to eql(@category1.name)
-        expect(cate2["unread_number"]).to eql(@category1.unread_number(@user))
-      end
+          get 'api/categories.json', { token: @user.token }
+          
+          expect(json["categories"].length).to eql(2)
 
-      it "with category 1 has more than one docs" do
-        @doc2 = create :document, company_id: @company.id, category_id: @category.id
-        version2 = create :version, document_id: @doc2.id
+          expect(json["categories"][0]["name"]).to eql(@category.name)
+          expect(json["categories"][0]["unread_number"]).to eql(2)
 
-        @category.document_ids << @doc2.id
-        @category.save
-
-        get 'api/categories.json', { token: @user.token }
-        
-        expect(json["categories"].length).to eql(2)
-
-        cate1 = json["categories"][0]
-
-        expect(cate1["name"]).to eql(@category.name)
-        expect(cate1["unread_number"]).to eql(@category.unread_number(@user))
-
-        cate2 = json["categories"][1]
-
-        expect(cate2["name"]).to eql(@category1.name)
-        expect(cate2["unread_number"]).to eql(@category1.unread_number(@user))
+          expect(json["categories"][1]["name"]).to eql(@category1.name)
+          expect(json["categories"][1]["unread_number"]).to eql(1)
+        end
       end
     end
   end
@@ -153,25 +136,18 @@ describe "Category API" do
   #     unread_number 
   #   }
   describe "GET /category/docs.json" do
-    context "success" do
+    context "when category has only one doc and it's accountable for user" do
       before(:each) do
-        User.destroy_all
-        Document.destroy_all
-        Version.destroy_all
-        Category.destroy_all
+        @category1 = create :category, company_id: @company.id
+        @doc1.category = @category1
+        @doc1.save
 
-        @user = create :user, company_ids: [@company.id]
-        @category = create :category, name: "Category 1"
-        @category1 = create :category, name: "Category 2"
-
-        @doc = create :document, company_id: @company.id, category_id: @category.id
-        version = create :version, document_id: @doc.id
-
-        @doc1 = create :document, company_id: @company.id, category_id: @category1.id
-        version1 = create :version, document_id: @doc1.id
+        u_comp = @user.user_company(@company)
+        u_comp.company_path_ids = @doc.belongs_to_paths.first
+        u_comp.save
       end
 
-      it "when category has only one doc and user has not read this doc yet" do
+      it "return doc info with is_unread = true if user has not read this doc yet" do
 
         get 'api/category/docs.json', {token: @user.token, category_id: @category.id.to_s}
         
@@ -179,21 +155,17 @@ describe "Category API" do
 
         cate_docs = json["docs"]
 
-        expect(cate_docs[0]["uid"]).to eq(@doc.id.to_s)
-        expect(cate_docs[0]["title"]).to eq(@doc.title)
-        expect(cate_docs[0]["doc_file"]).to eq(@doc.current_version.doc_file)
-        expect(cate_docs[0]["version"]).to eq(@doc.current_version.version)
-        expect(cate_docs[0]["is_unread"]).to eq(true)
+        CheckReturnDocInfo.new.test(cate_docs[0], @doc)
 
+        expect(cate_docs[0]["is_unread"]).to eq(true)
         expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc.reload.category.try(:name).to_s)
 
         expect(json["unread_number"]).to eq(1)
 
         expect(json["result_code"]).to eql(SUCCESS_CODES[:success])
       end
 
-      it "when category has only one doc and user has already read this doc" do
+      it "return doc info with is_unread = false if user has already read this doc" do
         @user.update_attribute(:read_document_ids, [@doc.id])
 
         get 'api/category/docs.json', {token: @user.token, category_id: @category.id.to_s}
@@ -202,20 +174,57 @@ describe "Category API" do
 
         cate_docs = json["docs"]
 
-        expect(cate_docs[0]["uid"]).to eq(@doc.id.to_s)
-        expect(cate_docs[0]["title"]).to eq(@doc.title)
-        expect(cate_docs[0]["doc_file"]).to eq(@doc.current_version.doc_file)
-        expect(cate_docs[0]["version"]).to eq(@doc.current_version.version)
+        CheckReturnDocInfo.new.test(cate_docs[0], @doc)
         expect(cate_docs[0]["is_unread"]).to eq(false)
-
         expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc.reload.category.try(:name).to_s)
 
         expect(json["unread_number"]).to eq(0)
       end
+    end
 
-      it "when has two docs & user has not read them" do
-        @category.update_attribute(:document_ids, [@doc.id, @doc1.id])
+    context "when category has only one doc and it isn't accountable for user" do
+      before(:each) do
+        @category1 = create :category, company_id: @company.id
+        @doc1.category = @category1
+        @doc1.save
+
+        u_comp = @user.user_company(@company)
+        u_comp.company_path_ids = @doc1.belongs_to_paths.first
+        u_comp.save
+      end
+
+      it "always return doc info with is_unread = false if user read/not read this doc" do
+
+        get 'api/category/docs.json', {token: @user.token, category_id: @category.id.to_s}
+        
+        expect(json["docs"].length).to eq(1)
+
+        cate_docs = json["docs"]
+
+        CheckReturnDocInfo.new.test(cate_docs[0], @doc)
+
+        expect(cate_docs[0]["is_unread"]).to eq(false)
+        expect(cate_docs[0]["is_favourite"]).to eq(false)
+
+        expect(json["unread_number"]).to eq(0)
+
+        expect(json["result_code"]).to eql(SUCCESS_CODES[:success])
+      end
+    end
+
+    context "when category has two docs and all are accountable for user" do
+      before(:each) do
+        u_comp = @user.user_company(@company)
+        u_comp.company_path_ids = @doc.belongs_to_paths.first
+        u_comp.save
+        u_comp.reload
+
+        @doc1.belongs_to_paths << @doc.belongs_to_paths.first
+        @doc1.category = @category
+        @doc1.save
+      end
+
+      it "return doc info with is_unread = true if user has not read them" do
         @user.update_attribute(:read_document_ids, [])
 
         get 'api/category/docs.json', {token: @user.token, category_id: @category.id.to_s}
@@ -224,29 +233,18 @@ describe "Category API" do
 
         cate_docs = json["docs"]
 
-        expect(cate_docs[0]["uid"]).to eq(@doc1.id.to_s)
-        expect(cate_docs[0]["title"]).to eq(@doc1.title)
-        expect(cate_docs[0]["doc_file"]).to eq(@doc1.current_version.doc_file)
-        expect(cate_docs[0]["version"]).to eq(@doc1.current_version.version)
+        CheckReturnDocInfo.new.test(cate_docs[0], @doc1)
         expect(cate_docs[0]["is_unread"]).to eq(true)
-
         expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc1.reload.category.try(:name).to_s)
 
-        expect(cate_docs[1]["uid"]).to eq(@doc.id.to_s)
-        expect(cate_docs[1]["title"]).to eq(@doc.title)
-        expect(cate_docs[1]["doc_file"]).to eq(@doc.current_version.doc_file)
-        expect(cate_docs[1]["version"]).to eq(@doc.current_version.version)
+        CheckReturnDocInfo.new.test(cate_docs[1], @doc)
         expect(cate_docs[1]["is_unread"]).to eq(true)
-
-        expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc.reload.category.try(:name).to_s)
+        expect(cate_docs[1]["is_favourite"]).to eq(false)
 
         expect(json["unread_number"]).to eq(2)
       end
 
-      it "when has two docs & user has read one of them" do
-        @category.update_attribute(:document_ids, [@doc.id, @doc1.id])
+      it "return doc info with correct is_unread status for each doc if user has read one of them" do
         @user.update_attribute(:read_document_ids, [@doc.id])
 
         get 'api/category/docs.json', {token: @user.token, category_id: @category.id.to_s}
@@ -255,23 +253,13 @@ describe "Category API" do
 
         cate_docs = json["docs"]
 
-        expect(cate_docs[0]["uid"]).to eq(@doc1.id.to_s)
-        expect(cate_docs[0]["title"]).to eq(@doc1.title)
-        expect(cate_docs[0]["doc_file"]).to eq(@doc1.current_version.doc_file)
-        expect(cate_docs[0]["version"]).to eq(@doc1.current_version.version)
+        CheckReturnDocInfo.new.test(cate_docs[0], @doc1)
         expect(cate_docs[0]["is_unread"]).to eq(true)
-
         expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc1.reload.category.try(:name).to_s)
 
-        expect(cate_docs[1]["uid"]).to eq(@doc.id.to_s)
-        expect(cate_docs[1]["title"]).to eq(@doc.title)
-        expect(cate_docs[1]["doc_file"]).to eq(@doc.current_version.doc_file)
-        expect(cate_docs[1]["version"]).to eq(@doc.current_version.version)
+        CheckReturnDocInfo.new.test(cate_docs[1], @doc)
         expect(cate_docs[1]["is_unread"]).to eq(false)
-
-        expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc.reload.category.try(:name).to_s)
+        expect(cate_docs[1]["is_favourite"]).to eq(false)
 
         expect(json["unread_number"]).to eq(1)
       end
@@ -286,30 +274,56 @@ describe "Category API" do
 
         cate_docs = json["docs"]
 
-        expect(cate_docs[0]["uid"]).to eq(@doc1.id.to_s)
-        expect(cate_docs[0]["title"]).to eq(@doc1.title)
-        expect(cate_docs[0]["doc_file"]).to eq(@doc1.current_version.doc_file)
-        expect(cate_docs[0]["version"]).to eq(@doc1.current_version.version)
+        CheckReturnDocInfo.new.test(cate_docs[0], @doc1)
         expect(cate_docs[0]["is_unread"]).to eq(true)
         expect(cate_docs[0]["is_inactive"]).to eq(false)
-
         expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc1.reload.category.try(:name).to_s)
 
-        expect(cate_docs[1]["uid"]).to eq(@doc.id.to_s)
-        expect(cate_docs[1]["title"]).to eq(@doc.title)
-        expect(cate_docs[1]["doc_file"]).to eq(@doc.current_version.doc_file)
-        expect(cate_docs[1]["version"]).to eq(@doc.current_version.version)
+        CheckReturnDocInfo.new.test(cate_docs[1], @doc)
         expect(cate_docs[1]["is_unread"]).to eq(true)
         expect(cate_docs[1]["is_inactive"]).to eq(true)
-
-        expect(cate_docs[0]["is_favourite"]).to eq(false)
-        expect(cate_docs[0]["category"]).to eq(@doc.reload.category.try(:name).to_s)
+        expect(cate_docs[1]["is_favourite"]).to eq(false)
 
         expect(json["unread_number"]).to eq(1)
       end
+    end
 
-      it "when has no doc" do
+    context "when category has two docs and all are not accountable for user" do
+      before(:each) do
+        @doc1.belongs_to_paths << @doc.belongs_to_paths.first
+        @doc1.category = @category
+        @doc1.save
+
+        u_comp = @user.user_company(@company)
+        u_comp.company_path_ids = (@all_paths.keys - @doc.belongs_to_paths - @doc1.belongs_to_paths).first
+        u_comp.save
+        u_comp.reload
+      end
+
+      it "always return doc info with is_unread = false if user read/not read them" do
+        @user.update_attribute(:read_document_ids, [])
+
+        get 'api/category/docs.json', {token: @user.token, category_id: @category.id.to_s}
+        
+        expect(json["docs"].length).to eq(2)
+
+        cate_docs = json["docs"]
+
+        CheckReturnDocInfo.new.test(cate_docs[0], @doc1)
+        expect(cate_docs[0]["is_unread"]).to eq(false)
+        expect(cate_docs[0]["is_favourite"]).to eq(false)
+
+        CheckReturnDocInfo.new.test(cate_docs[1], @doc)
+        expect(cate_docs[1]["is_unread"]).to eq(false)
+        expect(cate_docs[1]["is_favourite"]).to eq(false)
+
+        expect(json["unread_number"]).to eq(0)
+      end
+    end
+
+    context "when has no doc" do
+
+      it "return empty" do
         @category.update_attribute(:document_ids, [])
 
         get 'api/category/docs.json', {token: @user.token, category_id: @category.id.to_s}
@@ -331,7 +345,7 @@ describe "Category API" do
 
       it "when category is not found" do
         get 'api/category/docs.json', {token: @user.token, category_id: "sa"}
-        
+
         expect(json["error"]["message"]).to eq(I18n.t("category.not_found"))
         expect(json["error"]["error_code"]).to eq(ERROR_CODES[:item_not_found])
       end

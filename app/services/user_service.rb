@@ -1,7 +1,10 @@
 class UserService < BaseService
 
-  def self.staff_with_outstanding_documents(user, company)
-    #Rails.cache.fetch("#{company.id}-#{user.id}-staff-with-outstanding-documents", :expires_in => 1.hours) do
+  def self.staff_with_outstanding_documents(user, company, page: 1, per_page: 50)
+    # Rails.cache.fetch("#{company.id}-#{user.id}-staff-with-outstanding-documents", :expires_in => 1.hours) do
+      page = page.to_i
+      page = 1 if page < 1
+      per_page = per_page.to_i
       result = []
 
       u_comp = user.user_company(company, true)
@@ -12,7 +15,7 @@ class UserService < BaseService
 
       return [] if user_ids.blank?
 
-      users_info = company.user_companies.where(:user_id.in => user_ids).pluck(:user_id, :user_type, :company_path_ids)
+      users_info = company.user_companies.where(:user_id.in => user_ids).order([:name, :asc]).page(page).per(per_page).pluck(:user_id, :user_type, :company_path_ids)
 
       users_info_hash = {}
       viewable_users_company_path_info = {}
@@ -60,7 +63,7 @@ class UserService < BaseService
       end
 
       result
-    #end
+    # end
   end
 
   ##
@@ -276,7 +279,7 @@ class UserService < BaseService
   ##
   def self.remove_user_device_in_pusher(user, push_token, app_access_token)
     if user.devices.where(app_access_token: app_access_token, token: push_token).first
-      NotificationService.delay.update_tags_in_device(user, push_token, app_access_token, false)
+      NotificationService.delay(queue: "notification_and_convert_doc").update_tags_in_device(user, push_token, app_access_token, false)
     end
   end
 
@@ -320,10 +323,10 @@ class UserService < BaseService
 
     user.company_documents(company).where(:document_id.in => sync_doc_ids).update_all({is_accountable: true, updated_at: Time.now.utc})
     
-    NotificationService.delay.add_accountable([user.id], new_sync_doc_ids) unless new_sync_doc_ids.blank?
+    NotificationService.delay(queue: "notification_and_convert_doc").add_accountable([user.id], new_sync_doc_ids) unless new_sync_doc_ids.blank?
 
     not_accountable_doc_ids = user.company_documents(company).where(:document_id.nin => sync_doc_ids).pluck(:document_id)
-    NotificationService.delay.remove_accountable([user.id], not_accountable_doc_ids) unless not_accountable_doc_ids.blank?
+    NotificationService.delay(queue: "notification_and_convert_doc").remove_accountable([user.id], not_accountable_doc_ids) unless not_accountable_doc_ids.blank?
 
     ## Create notification in web admin for unread accountable documents
     unread_accountable_doc_ids = user.assigned_docs(company).where(:id.nin => user.read_document_ids).pluck(:id)
@@ -358,48 +361,40 @@ class UserService < BaseService
     end
 
     company.user_companies.where(:user_id.in => (available_user_ids + already_avai_user_ids)).update_all(need_update_docs_count: true)
-    User.delay.update_docs_count
+    # User.delay.update_docs_count
 
     document.company_users(company).where(:user_id.in => available_user_ids).update_all({is_accountable: true, updated_at: Time.now.utc})
 
     if document.is_inactive
-      NotificationService.delay.document_is_invalid(document)
-      User.delay.remove_invalid_docs(company.user_ids, [document.id])
+      NotificationService.delay(queue: "notification_and_convert_doc").document_is_invalid(document)
+      User.delay(queue: "update_data").remove_invalid_docs(company.user_ids, [document.id])
       return
     elsif !document.effective
-      NotificationService.delay.documents_have_changed_meta_data(document.company_users(company).pluck(:user_id), [document.id])
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_have_changed_meta_data(document.company_users(company).pluck(:user_id), [document.id])
       return
     end
 
     not_accountable_user_ids = document.company_users(company).where(is_accountable: false).pluck(:user_id)
 
-    NotificationService.delay.remove_accountable(not_accountable_user_ids, [document.id]) unless not_accountable_user_ids.blank?
+    NotificationService.delay(queue: "notification_and_convert_doc").remove_accountable(not_accountable_user_ids, [document.id]) unless not_accountable_user_ids.blank?
     
     if options[:new_version]
-      NotificationService.delay(run_at: (document.effective_time.try(:utc) || Time.now.utc)).document_is_created(document, available_user_ids)
+      NotificationService.delay(queue: "notification_and_convert_doc", run_at: (document.effective_time.try(:utc) || Time.now.utc)).document_is_created(document, available_user_ids)
     elsif options[:change_area]
-      NotificationService.delay(run_at: (document.effective_time.try(:utc) || Time.now.utc)).document_is_created(document, new_avai_user_ids)
-      NotificationService.delay.documents_have_changed_meta_data(already_avai_user_ids, [document.id])
+      NotificationService.delay(queue: "notification_and_convert_doc", run_at: (document.effective_time.try(:utc) || Time.now.utc)).document_is_created(document, new_avai_user_ids)
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_have_changed_meta_data(already_avai_user_ids, [document.id])
     else
-      NotificationService.delay.documents_have_changed_meta_data(available_user_ids, [document.id])
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_have_changed_meta_data(available_user_ids, [document.id])
     end
   
     ## Create notification in web admin for unread accountable documents
-    if !document.is_private && document.is_not_restrict_viewing
-      accountable_user_ids = document.available_for_user_ids - document.read_user_ids
-      accountable_user_ids.each do |u_id|
-        noti = Notification.find_or_initialize_by({user_id: u_id, company_id: company.id, 
-          type: Notification::TYPES[:unread_document][:code], document_id: document.id})
-
-        noti.created_at = Time.now.utc
-
-        if options[:new_version] || (!noti.new_record? && new_avai_user_ids.include?(u_id))
-          noti.status = Notification::UNREAD_STATUS
-        end
-
-        noti.save
-      end
-    end
+    DocumentService.create_unread_doc_noti_in_web_admin(
+        document, 
+        {
+          new_version: options[:new_version],
+          new_avai_user_ids: new_avai_user_ids
+        }
+      )
   end
 
   ##
@@ -436,9 +431,9 @@ class UserService < BaseService
     user.update_docs_count(company)
 
     if is_accountable || is_favourited
-      NotificationService.delay.documents_have_changed_meta_data([user.id], [document.id])
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_have_changed_meta_data([user.id], [document.id])
     else
-      NotificationService.delay.remove_accountable([user.id], [document.id])
+      NotificationService.delay(queue: "notification_and_convert_doc").remove_accountable([user.id], [document.id])
     end
   end
 

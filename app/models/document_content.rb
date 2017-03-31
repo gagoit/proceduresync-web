@@ -46,7 +46,7 @@ class DocumentContent
   def self.mongo_search(filter_doc_ids, text, page = nil, per_page = nil)
     basic_query = [
           { "$match" => { "$text" => { "$search" => text }, "document_id" => {"$in" => filter_doc_ids} } },
-          { "$sort" => { score: { "$meta" => "textScore" } } },
+          { "$sort" => { score: { "$meta" => "textScore" }, created_at: 1 } },
           { "$project" => {document_id: 1, title: 1, score: { "$meta" => "textScore" } } }
         ]
 
@@ -57,7 +57,7 @@ class DocumentContent
       paging_query << { "$limit" => per_page }
     end
 
-    session = Mongoid::Sessions.default
+    session = Mongoid::Clients.default
     d_c = session["document_contents"]
 
     begin
@@ -75,28 +75,23 @@ class DocumentContent
   # Create text indexes
   ##
   def self.create_text_indexes
-    session = Mongoid::Sessions.default
+    # session = Mongoid::Clients.default
 
-    d_c = session["document_contents"]
+    # d_c = session["document_contents"]
 
-    d_c.indexes.drop
+    # d_c.indexes.drop
 
-    d_c.indexes.create({document_id: 1})
+    # d_c.indexes.create({document_id: 1})
 
-    # d_c.indexes.create({pages: "text", title: "text", _keywords: "text", company_id: 1}, {
+    # d_c.indexes.create({pages: "text", title: "text", doc_id: "text", :'_keywords' => "text", company_id: 1}, {
     #   weights: {
-    #     title: 10,
+    #     title: 100,
+    #     doc_id: 100,
     #     pages: 1,
-    #     _keywords: 1
+    #     _keywords: 20
     #   }
     # })
-    d_c.indexes.create({pages: "text", title: "text", doc_id: "text", :'_keywords' => "text", company_id: 1}, {
-      weights: {
-        title: 100,
-        doc_id: 100,
-        pages: 1,
-        _keywords: 20
-      }
-    })
+
+    self.create_indexes
   end
 end

@@ -1,6 +1,6 @@
 require 'openssl'
 class HomeController < ApplicationController
-  before_filter :authenticate_user!, only: [:dashboard, :administrator_contact]
+  before_filter :authenticate_user!, only: [:dashboard, :administrator_contact, :staff_with_outstanding_documents]
 
   before_filter :check_company, except: [:index, :terms_and_conditions, :terms_and_conditions]
 
@@ -15,6 +15,12 @@ class HomeController < ApplicationController
 
   def administrator_contact
 
+  end
+
+  def staff_with_outstanding_documents
+    data = UserService.staff_with_outstanding_documents(current_user, current_company, page: params[:page], per_page: params[:per_page])
+
+    render :json => {docs_html: render_to_string(partial: "home/staff_with_outstanding_documents_content", locals: {data: data}, formats: [:html])}
   end
 
   def support_login

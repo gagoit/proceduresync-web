@@ -17,10 +17,7 @@ describe "Document: update_paths:" do
     end
 
     it "Users have add/edit document permission can do" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
-
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
       assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
 
       u_comp_permission = @user.comp_permission(@company)
@@ -37,10 +34,7 @@ describe "Document: update_paths:" do
     end
 
     it "Users have Approver permission and bulk assignment permission can do" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
-
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
       assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
       
       u_comp_permission = @user.comp_permission(@company)
@@ -57,11 +51,8 @@ describe "Document: update_paths:" do
     end
 
     it "Users is not in above types can not do" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
-
-      assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
+      assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:supervisor_user][:code])
       
       u_comp_permission = @user.comp_permission(@company)
       u_comp_permission.add_edit_documents = false
@@ -83,9 +74,7 @@ describe "Document: update_paths:" do
       create_default_data({company_type: :advanced})
 
       #user has add/edit document permission
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
       
       u_comp_permission = @user.comp_permission(@company)
       u_comp_permission.add_edit_documents = true
@@ -136,19 +125,51 @@ describe "Document: update_paths:" do
         expect(result[:success]).to eq(true)
         expect(result[:message]).to eq("Documents have been updated successfully")
       end
-    end 
-  end
 
+      it "and we will update user_documents relationship users're in new areas with accountable = true" do
+        @doc.approved_paths = []
+        @doc.save
+
+        @params[:ids] = [@doc.id.to_s]
+        @params[:paths] = @all_paths.keys.to_s
+
+        user1, u1_comp = create_user(@company, {info: {}, paths: {company_path_ids: @all_paths.keys.last}})
+
+        result = Document.update_paths(@user, @company, @params)
+
+        @doc.reload
+
+        @all_paths.keys.each do |area|
+          expect(@doc.approved_paths.include?(area)).to eq(true)
+        end
+
+        #in test mode, it's not run the delayed job, so we will run it manually
+        # UserService.update_user_documents({document: @doc, company: @company})
+        DocumentService.add_accountable_to_paths(@company, @doc, @all_paths.keys)
+        # DocumentService.create_unread_doc_noti_in_web_admin(
+        #   @doc, 
+        #   {
+        #     new_version: false,
+        #     new_avai_user_ids: [@user.id, user1.id]
+        #   }
+        # )
+        u_ids = @doc.company_users(@company).accountable.pluck(:user_id)
+        expect(u_ids.include?(@user.id)).to eq(true)
+        expect(u_ids.include?(user1.id)).to eq(true)
+
+        expect(result[:success]).to eq(true)
+        expect(result[:message]).to eq("Documents have been updated successfully")
+      end
+    end
+  end
 
   context "assignment_type remove_accountability:" do
     before(:each) do
       create_default_data({company_type: :advanced})
 
       #user has add/edit document permission
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
-      
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
+
       u_comp_permission = @user.comp_permission(@company)
       u_comp_permission.add_edit_documents = true
       u_comp_permission.bulk_assign_documents = false
@@ -198,6 +219,35 @@ describe "Document: update_paths:" do
       expect(result[:success]).to eq(true)
       expect(result[:message]).to eq("Documents have been updated successfully")
     end
+
+    it "and we will update user_documents relationship users're in new areas with accountable = false" do
+      @doc.approved_paths = @doc.belongs_to_paths
+      @doc.save
+      UserService.update_user_documents({document: @doc.reload, company: @company})
+
+      new_paths = @doc.belongs_to_paths
+      @params[:ids] = [@doc.id.to_s]
+      @params[:paths] = new_paths.to_s
+
+      result = Document.update_paths(@user, @company, @params)
+
+      @doc.reload
+
+      new_paths.each do |area|
+        expect(@doc.belongs_to_paths.include?(area)).to eq(false)
+      end
+
+      #in test mode, it's not run the delayed job, so we will run it manually
+      # UserService.update_user_documents({document: @doc, company: @company})
+      DocumentService.remove_accountability_of_paths(@company, @doc, new_paths)
+
+      u_doc = @doc.company_users(@company).where(user_id: @user.id).first
+      expect(u_doc.present?).to eq(true)
+      expect(u_doc.is_accountable).to eq(false)
+
+      expect(result[:success]).to eq(true)
+      expect(result[:message]).to eq("Documents have been updated successfully")
+    end
   end
 
   context "Check UNREAD document notification:" do
@@ -205,9 +255,7 @@ describe "Document: update_paths:" do
       create_default_data({company_type: :advanced})
 
       #user has add/edit document permission
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @doc.belongs_to_paths.first
-      u_comp.save
+      u_comp = assign_user_to_path(@user, @company, {company_path_ids: @doc.belongs_to_paths.first})
       
       u_comp_permission = @user.comp_permission(@company)
       u_comp_permission.add_edit_documents = true
@@ -257,7 +305,8 @@ describe "Document: update_paths:" do
       @user.reload
 
       #in test mode, it's not run the delayed job, so we will run it manually
-      UserService.update_user_documents({document: @doc, company: @company})
+      # UserService.update_user_documents({document: @doc, company: @company})
+      DocumentService.add_accountable_to_paths(@company, @doc, new_paths)
 
       unread_doc_notifications = @user.get_notifications(@company).where(type: Notification::TYPES[:unread_document][:code])
 
@@ -293,7 +342,15 @@ describe "Document: update_paths:" do
       @user.reload
 
       #in test mode, it's not run the delayed job, so we will run it manually
-      UserService.update_user_documents({document: @doc, company: @company})
+      # UserService.update_user_documents({document: @doc, company: @company})
+      DocumentService.add_accountable_to_paths(@company, @doc, new_paths)
+      DocumentService.create_unread_doc_noti_in_web_admin(
+        @doc, 
+        {
+          new_version: false,
+          new_avai_user_ids: [@user.id]
+        }
+      )
 
       expect(@doc.available_for_user_ids.include?(@user.id)).to eq(true)
 

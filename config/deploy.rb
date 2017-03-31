@@ -50,7 +50,7 @@ set :use_sudo, true
 set :rails_env, "production" #added for delayed job
 
 #set :delayed_job_server_role, :worker
-#set :delayed_job_args, "-n 2"
+set :delayed_job_args, [" -i update_data --queue=update_data", " -i notification_and_convert_doc --queue=notification_and_convert_doc", " -i other"]
 
 namespace :deploy do
 
@@ -114,9 +114,9 @@ namespace :deploy do
       execute "rm -rf #{shared_path}/log && mkdir -p #{log_location} && sudo ln -nfs #{log_location} #{shared_path}/log"
       execute "rm -rf #{current_path}/log && sudo ln -s #{shared_path}/log #{current_path}/log"
 
-      info "Create symlink for pids"
-      execute "mkdir -pv #{shared_path}/pids && mkdir -pv #{current_path}/tmp"
-      execute "sudo ln -s #{shared_path}/pids #{current_path}/tmp/pids"
+      # info "Create symlink for pids"
+      # execute "mkdir -pv #{shared_path}/pids && mkdir -pv #{current_path}/tmp"
+      # execute "rm -rf #{current_path}/tmp/pids && sudo ln -s #{shared_path}/pids #{current_path}/tmp/pids", raise_on_non_zero_exit: false
 
       # info "Create symlink for God"
       # execute "sudo ln -nfs #{current_path}/config/deploy/#{fetch(:application)}.god /etc/god/config.d/#{fetch(:application)}.god"
@@ -181,8 +181,15 @@ namespace :delayed_job do
     on roles(delayed_job_roles) do
       within current_path do    
         with rails_env: fetch(:rails_env) do
-          execute :bundle, :exec, :'bin/delayed_job', :stop, raise_on_non_zero_exit: false
-          execute "rm -rf #{current_path}/tmp/pids", raise_on_non_zero_exit: false
+          if args.is_a?(Array)
+            args.each do |arg|
+              execute :bundle, :exec, :'bin/delayed_job', arg, :stop, raise_on_non_zero_exit: false
+            end
+          else
+            execute :bundle, :exec, :'bin/delayed_job', args, :stop, raise_on_non_zero_exit: false
+          end
+
+          execute "rm -rf #{current_path}/tmp/pids/delayed_job*", raise_on_non_zero_exit: false
         end
       end
     end
@@ -193,7 +200,13 @@ namespace :delayed_job do
     on roles(delayed_job_roles) do
       within current_path do
         with rails_env: fetch(:rails_env) do
-          execute :bundle, :exec, :'bin/delayed_job', args, :start
+          if args.is_a?(Array)
+            args.each do |arg|
+              execute :bundle, :exec, :'bin/delayed_job', arg, :start
+            end
+          else
+            execute :bundle, :exec, :'bin/delayed_job', args, :start
+          end
         end
       end
     end
@@ -204,7 +217,13 @@ namespace :delayed_job do
     on roles(delayed_job_roles) do
       within current_path do
         with rails_env: fetch(:rails_env) do
-          execute :bundle, :exec, :'bin/delayed_job', args, :restart
+          if args.is_a?(Array)
+            args.each do |arg|
+              execute :bundle, :exec, :'bin/delayed_job', arg, :restart
+            end
+          else
+            execute :bundle, :exec, :'bin/delayed_job', args, :restart
+          end
         end
       end
     end

@@ -28,10 +28,9 @@ describe "User: team_unread_document_percentage" do
     end
 
     it "user will see team_unread_document_percentage as 0" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @all_paths.keys.first
-      u_comp.save
-      u_comp.reload
+      u_comp = assign_user_to_path(@user, @company, {
+          company_path_ids: @all_paths.keys.first
+        })
 
       assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:standard_user][:code])
 
@@ -45,15 +44,15 @@ describe "User: team_unread_document_percentage" do
       @company.reload
 
       User.update_companies_of_user(user1, [], [@company.id])
-      u1_comp = user1.user_company(@company)
-      u1_comp.company_path_ids = (@all_paths.keys - [u_comp.company_path_ids]).first
-      u1_comp.save
+      u1_comp = assign_user_to_path(user1, @company, {
+          company_path_ids: (@all_paths.keys - [u_comp.company_path_ids]).first
+        })
 
       @user.reload
       user1.reload
 
       unread_percentage, unread_percentage_r = test_formula.call(@user, @company, [])
-      expect(unread_percentage).to eq("0")
+      expect(unread_percentage).to eq("0.0")
     end
   end
 
@@ -64,10 +63,9 @@ describe "User: team_unread_document_percentage" do
     end
 
     it "if user is supervisor, user can see team_unread_document_percentage" do
-      u_comp = @user.user_company(@company)
-      u_comp.company_path_ids = @all_paths.keys.first
-      u_comp.save
-      u_comp.reload
+      u_comp = assign_user_to_path(@user, @company, {
+          company_path_ids: @all_paths.keys.first
+        })
 
       assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:standard_user][:code])
 
@@ -84,9 +82,9 @@ describe "User: team_unread_document_percentage" do
       @company.reload
 
       User.update_companies_of_user(user1, [], [@company.id])
-      u1_comp = user1.user_company(@company)
-      u1_comp.company_path_ids = (@all_paths.keys - [u_comp.company_path_ids]).first
-      u1_comp.save
+      u1_comp = assign_user_to_path(user1, @company, {
+          company_path_ids: (@all_paths.keys - [u_comp.company_path_ids]).first
+        })
 
       #user2 is in @user's area
       user2 = create :user, token: "#{@user.token}111", company_ids: [@company.id], admin: false
@@ -94,9 +92,9 @@ describe "User: team_unread_document_percentage" do
       @company.reload
       
       User.update_companies_of_user(user2, [], [@company.id])
-      u2_comp = user2.user_company(@company)
-      u2_comp.company_path_ids = u_comp.company_path_ids
-      u2_comp.save
+      u2_comp = assign_user_to_path(user2, @company, {
+          company_path_ids: u_comp.company_path_ids
+        })
 
       @user.reload
       user1.reload

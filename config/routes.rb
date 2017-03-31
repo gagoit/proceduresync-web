@@ -142,6 +142,7 @@ Proceduresync::Application.routes.draw do
   end
 
   match "dashboard" => "home#dashboard", via: :get, as: "dashboard"
+  match "staff_with_outstanding_documents" => "home#staff_with_outstanding_documents", via: :get, as: "staff_with_outstanding_documents", defaults: {format: :json}
   match "support" => "home#support_login", via: :get, as: "support"
   match "administrator_contact" => "home#administrator_contact", via: :get, as: "administrator_contact"
 

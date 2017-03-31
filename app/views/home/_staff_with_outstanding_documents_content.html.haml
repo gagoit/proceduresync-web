@@ -1,0 +1,9 @@
+- curr_time = BaseService.time_formated(current_company, Time.now.utc, "As of %l:%M%p %d/%m/%y")
+
+- data.each do |item|
+  %a.list-group-item{:href => item[:href], :'data-uid' => item[:id], class: item[:a_class]}
+    %i.fa.fa-user.pull-left.large-icon
+    %h5.list-group-item-heading #{item[:name]}
+    %small.list-group-item-text 
+      #{curr_time} • 
+      %span.load-more-user-unread-docs{:'data-url' => load_more_unread_docs_user_path(:id => item[:id]), :'data-name' => item[:name]} #{pluralize(item[:unread_num], 'document')} unread

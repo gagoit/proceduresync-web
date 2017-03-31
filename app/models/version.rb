@@ -94,7 +94,7 @@ class Version
     Version.where(:id => self.id).update_all(need_validate_required_fields: false)
 
     if file_url_changed? && file_url
-      DocumentService.delay.upload_to_box(self)
+      DocumentService.delay(queue: "notification_and_convert_doc").upload_to_box(self)
     end
 
     if box_status == "done" && (doc = self.document) && doc.current_version.try(:id) == id

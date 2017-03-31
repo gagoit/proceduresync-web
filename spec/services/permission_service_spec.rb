@@ -88,22 +88,34 @@ describe "PermissionService" do
       end
     end
 
+    context "When user is approver_user user" do
+      before(:each) do
+        create_default_data({company_type: :advanced, create_doc: false})
+      end
+
+      it "user can bulk_assign_documents" do
+        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
+        assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
+        @user.reload
+        @company.reload
+
+        expect(PermissionService.can_bulk_assign_documents(@user, @company)).to eq(true)
+        expect(PermissionService.has_permission(:update_paths, @admin, @company, @company.documents.new()) ).to eq(true)
+      end
+    end
+
     context "When user don't have bulk_assign_documents and add_edit_documents permission" do
       before(:each) do
         create_default_data({company_type: :advanced, create_doc: false})
       end
 
       it "user can not bulk_assign_documents" do
-        u_comp = @user.user_company(@company)
-        u_comp.company_path_ids = @all_paths.keys.first
-        u_comp.save
-        u_comp.reload
+        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
 
-        assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
+        assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:standard_user][:code])
         u_comp_permission = @user.comp_permission(@company)
         u_comp_permission.add_edit_documents = false
         u_comp_permission.bulk_assign_documents = false
-        u_comp_permission.save
 
         @user.reload
         @company.reload
@@ -113,19 +125,16 @@ describe "PermissionService" do
       end
     end
 
-    context "When user have one of bulk_assign_documents or add_edit_documents permission" do
+    context "When user have bulk_assign_documents or add_edit_documents permission" do
       before(:each) do
         create_default_data({company_type: :advanced, create_doc: false})
       end
 
       it "user can bulk_assign_documents" do
-        u_comp = @user.user_company(@company)
-        u_comp.company_path_ids = @all_paths.keys.first
-        u_comp.save
-        u_comp.reload
+        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
 
         #just has bulk_assign_documents
-        assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
+        assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:standard_user][:code])
         u_comp_permission = @user.comp_permission(@company)
         u_comp_permission.add_edit_documents = false
         u_comp_permission.bulk_assign_documents = true
@@ -177,10 +186,7 @@ describe "PermissionService" do
       end
 
       it "user can not do bulk_assign_documents for any areas" do
-        u_comp = @user.user_company(@company)
-        u_comp.company_path_ids = @all_paths.keys.first
-        u_comp.save
-        u_comp.reload
+        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
 
         assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
         u_comp_permission = @user.comp_permission(@company)
@@ -203,18 +209,15 @@ describe "PermissionService" do
       end
 
       it "user can bulk_assign_documents, not add_edit_documents, not is supervisor, user will only do bulk_assign_documents for approve for areas" do
-        u_comp = @user.user_company(@company)
-        u_comp.company_path_ids = @all_paths.keys.first
-        u_comp.save
-        u_comp.reload
+        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
         @user.reload
 
         #just has bulk_assign_documents
         assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
 
-        u_comp.reload
-        u_comp.approver_path_ids = [@all_paths.keys.first]
-        u_comp.save
+        @u_comp.reload
+        @u_comp.approver_path_ids = [@all_paths.keys.first]
+        @u_comp.save
 
         u_comp_permission = @user.comp_permission(@company)
         u_comp_permission.add_edit_documents = false
@@ -231,10 +234,7 @@ describe "PermissionService" do
       end
 
       it "user can add_edit_documents, not bulk_assign_documents, not is supervisor, user will only do bulk_assign_documents for all areas" do
-        u_comp = @user.user_company(@company)
-        u_comp.company_path_ids = @all_paths.keys.first
-        u_comp.save
-        u_comp.reload
+        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
 
         #just has bulk_assign_documents
         assign_permission(@user, @company, Permission::STANDARD_PERMISSIONS[:approver_user][:code])
@@ -258,10 +258,7 @@ describe "PermissionService" do
       end
 
       it "user has bulk_assign_documents, not add_edit_documents, and is supervisor, user will only do bulk_assign_documents for approve for areas + superviso for areas" do
-        u_comp = @user.user_company(@company)
-        u_comp.company_path_ids = @all_paths.keys.first
-        u_comp.save
-        u_comp.reload
+        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
         @user.reload
 
         #just has bulk_assign_documents

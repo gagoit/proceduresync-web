@@ -50,7 +50,7 @@ module Users
         doc_ids << doc.id
       end
 
-      NotificationService.delay.documents_have_changed_meta_data([user.id], doc_ids)
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_have_changed_meta_data([user.id], doc_ids)
     end
 
     ##
@@ -95,7 +95,7 @@ module Users
         doc_ids << doc.id
       end
 
-      NotificationService.delay.documents_have_changed_meta_data([user.id], doc_ids)
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_have_changed_meta_data([user.id], doc_ids)
     end
   end
 end

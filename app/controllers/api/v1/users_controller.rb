@@ -63,7 +63,7 @@ module Api
       def logout
         @user.devices.where(:token => params[:push_token], app_access_token: params[:app_access_token]).destroy_all
 
-        NotificationService.delay.register_device(@user, params[:push_token], params[:app_access_token], false)
+        NotificationService.delay(queue: "notification_and_convert_doc").register_device(@user, params[:push_token], params[:app_access_token], false)
       end
 
       #forgot password

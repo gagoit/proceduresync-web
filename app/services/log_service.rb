@@ -353,4 +353,8 @@ class LogService < BaseService
 
     return_data
   end
+
+  def self.create_log(company_id, log_hash)
+    ActivityLog.with(collection: "#{company_id}_activity_logs").create(log_hash)
+  end
 end

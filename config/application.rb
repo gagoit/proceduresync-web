@@ -31,5 +31,7 @@ module Proceduresync
     config.i18n.enforce_available_locales = true
 
     config.assets.paths << Rails.root.join("app", "assets", "fonts")
+
+    # config.mongoid.logger = Logger.new($stdout, :warn)
   end
 end

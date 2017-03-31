@@ -116,6 +116,7 @@ class Document
   index({approved_paths: 1})
   index({not_approved_paths: 1})
   index({created_at: -1})
+  index({private_for_id: 1})
 
   scope :active, -> {where({active: true})}
   scope :inactive, -> {where({active: false})}
@@ -206,23 +207,10 @@ class Document
       self.approved = true
     end
 
-    #set approved paths for documents that don't need approval
-    if !need_approval
-      self.approved_paths = self.belongs_to_paths
-    end
+    # Check and set approved_paths / not_approved_paths / not_accountable_for paths
+    self.correct_paths
 
-    self.approved_paths ||= []
-    self.belongs_to_paths ||= []
-    self.not_accountable_for ||= []
-
-    #check and remove invalid approved paths (that belongs to paths not include)
-    self.approved_paths = (self.approved_paths & self.belongs_to_paths)
-    self.not_approved_paths = self.belongs_to_paths - self.approved_paths
-
-    self.not_accountable_for = (self.not_accountable_for & self.belongs_to_paths)
-    self.not_accountable_for -= self.approved_paths
-
-    self.not_approved_paths -= self.not_accountable_for
+    true
   end
 
   after_save do
@@ -272,7 +260,7 @@ class Document
     #only set when document is effective
     if self.current_version && effective
       if is_private_changed?
-        NotificationService.delay.document_has_changed_privacy(self)
+        NotificationService.delay(queue: "notification_and_convert_doc").document_has_changed_privacy(self)
       end
 
       #Create notification in Web admin
@@ -482,7 +470,27 @@ class Document
     options[:document] = self
     options[:company] = company
 
-    UserService.delay.update_user_documents(options)
+    UserService.delay(queue: "update_data").update_user_documents(options)
+  end
+
+  def correct_paths
+    #set approved paths for documents that don't need approval
+    if !need_approval
+      self.approved_paths = self.belongs_to_paths
+    end
+
+    self.approved_paths ||= []
+    self.belongs_to_paths ||= []
+    self.not_accountable_for ||= []
+
+    #check and remove invalid approved paths (that belongs to paths not include)
+    self.approved_paths = (self.approved_paths & self.belongs_to_paths)
+    self.not_approved_paths = self.belongs_to_paths - self.approved_paths
+
+    self.not_accountable_for = (self.not_accountable_for & self.belongs_to_paths)
+    self.not_accountable_for -= self.approved_paths
+
+    self.not_approved_paths -= self.not_accountable_for
   end
 
   ##
@@ -528,7 +536,7 @@ class Document
   # Format JSON of muilti documents 
   ##
   def self.to_json(current_user, coll = [], options = {})
-    result = []
+    result = {}
     coll.each do |document|
       document = Document.get_document(document)
 
@@ -537,28 +545,26 @@ class Document
       curr_ver = document.current_version
       next unless curr_ver && !curr_ver.doc_file.blank?
 
-      result << document.to_json(current_user, curr_ver, options)
+      result[document.id] = document.to_json(current_user, curr_ver, options)
     end
 
     #in case: the document is not available for user, 
     #it should be mark as inactive when sync, and need to be removed from the app
     if docs_need_remove_in_app = options[:docs_need_remove_in_app]
       docs_need_remove_in_app.each do |e|
-        doc = e.to_json(current_user, nil, options)
-        doc[:is_inactive] = true
-
-        result << doc
+        result[e.id] ||= e.to_json(current_user, nil, options)
+        result[e.id][:is_inactive] = true
       end
     end
 
-    result
+    result.values
   end
 
   ##
   # Sent notify for testing
   ##
   def notify
-    NotificationService.delay.document_is_created(self)
+    NotificationService.delay(queue: "notification_and_convert_doc").document_is_created(self)
   end
 
   ##
@@ -588,7 +594,7 @@ class Document
 
       invalid_docs.update_all(active: false)
 
-      NotificationService.delay.documents_are_invalid(invalid_docs)
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_are_invalid(invalid_docs)
       User.remove_invalid_docs("all", invalid_doc_ids)
     end
   end
@@ -787,7 +793,7 @@ class Document
   def self.check_and_download_not_done_documents
     Document.where(active: true, :'versions.box_status'.ne => "done").each do |doc|
       if (v_last = doc.versions.first) && v_last.box_status != "done" && v_last.attemps_num_download_converted_file.to_i <= Version::MAX_ATTEMPS_NUM_DOWNLOAD
-        DocumentService.delay.get_converted_document(v_last)
+        DocumentService.delay(queue: "notification_and_convert_doc").get_converted_document(v_last)
       end
     end
   end
@@ -871,13 +877,25 @@ class Document
 
         new_attrs[:belongs_to_paths] = ((doc.belongs_to_paths || []) + paths).uniq
         doc.attributes = new_attrs
-        doc.save(validate: false)
+        # doc.save(validate: false)
+
+        doc.correct_paths
+        Document.where(:id => doc.id).update_all(need_approval: false, approved: true, assign_document_for: ASSIGN_FOR[:accountable],
+              belongs_to_paths: doc.belongs_to_paths, approved_paths: doc.approved_paths, 
+              not_approved_paths: doc.not_approved_paths, not_accountable_for: doc.not_accountable_for, updated_by_id: user.id)
+        doc.create_logs({ user_id: user.id, action: ActivityLog::ACTIONS[:updated_document], 
+              attrs_changes: doc.changes })
+
+        # Update UserDocument relationship for syncing
+        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, doc.belongs_to_paths)
       end
     when "add_accountability"
       # Document is already accountable and/or Accountable but not approved: Do nothing.
       # Document is not accountable. Make accountable.
       # - with document need approval, when we add accountability to document, they will be accountable for users in added areas ( don't need to be approve )
       
+      user_ids_in_paths = company.user_companies.where(:company_path_ids.in => paths).pluck(:user_id)
+
       documents.each do |doc|
         doc = Document.get_document(doc)
         next if doc.nil? || doc.is_private
@@ -886,11 +904,23 @@ class Document
         new_attrs[:approved_paths] = ((doc.approved_paths || []) + paths).uniq
 
         doc.attributes = new_attrs
-        doc.save(validate: false)
+        # doc.save(validate: false)
+
+        doc.correct_paths
+        Document.where(:id => doc.id).update_all(belongs_to_paths: doc.belongs_to_paths, approved_paths: doc.approved_paths, 
+              not_approved_paths: doc.not_approved_paths, not_accountable_for: doc.not_accountable_for, updated_by_id: user.id)
+        doc.create_logs({ user_id: user.id, action: ActivityLog::ACTIONS[:updated_document], 
+              attrs_changes: doc.changes })
+
+        next if user_ids_in_paths.blank?
+        # Update UserDocument relationship for syncing
+        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, paths, {user_ids_in_paths: user_ids_in_paths})
       end
     when "remove_accountability"
       # Document is already accountable and/or Accountable but not approved: Remove accountability.
       # Document is not accountable. Do nothing.
+
+      user_ids_in_paths = company.user_companies.where(:company_path_ids.in => paths).pluck(:user_id)
 
       documents.each do |doc|
         doc = Document.get_document(doc)
@@ -899,7 +929,17 @@ class Document
         new_attrs[:belongs_to_paths] = (doc.belongs_to_paths || []) - paths
         
         doc.attributes = new_attrs
-        doc.save(validate: false)
+        # doc.save(validate: false)
+
+        doc.correct_paths
+        Document.where(:id => doc.id).update_all(belongs_to_paths: doc.belongs_to_paths, approved_paths: doc.approved_paths, 
+              not_approved_paths: doc.not_approved_paths, not_accountable_for: doc.not_accountable_for, updated_by_id: user.id)
+        doc.create_logs({ user_id: user.id, action: ActivityLog::ACTIONS[:updated_document], 
+              attrs_changes: doc.changes })
+
+        next if user_ids_in_paths.blank?
+        # Update UserDocument relationship for syncing
+        DocumentService.delay(queue: "update_data").remove_accountability_of_paths(company, doc, paths, {user_ids_in_paths: user_ids_in_paths})
       end
     else
       return {success: false, message: "There are something wrong"}
@@ -921,11 +961,13 @@ class Document
   ##
   def create_logs(log_hash)
     log_hash[:target_document_id] = self.id
+    log_hash[:company_id] = self.company_id
 
-    puts "---document #{self.title} create_logs for company #{company.id} #{company.name}---"
-    puts log_hash
+    # puts "---document #{self.title} create_logs for company #{company.id} #{company.name}---"
+    # puts log_hash
 
-    ActivityLog.with(collection: "#{self.company_id}_activity_logs").create(log_hash)
+    # ActivityLog.with(collection: "#{self.company_id}_activity_logs").create(log_hash)
+    LogService.delay.create_log(self.company_id, log_hash)
   end
 
   ##
@@ -964,12 +1006,14 @@ class Document
   #
   ##
   def self.get_document(doc_obj)
-    if doc_obj.is_a?(DocumentContent)
+    if doc_obj.is_a?(Document)
+      doc_obj
+    elsif doc_obj.is_a?(DocumentContent)
       doc_obj.document 
     elsif doc_obj.is_a?(Hash)
       Document.find(doc_obj["document_id"]) rescue nil
     else 
-      doc_obj
+      Document.find(doc_obj) rescue nil
     end
   end
 

@@ -1,22 +1,4 @@
 GIT
-  remote: git://github.com/ahoward/mongoid-grid_fs.git
-  revision: 37287164eccc46c32471a8635dc1dfbabc1687d1
-  specs:
-    mongoid-grid_fs (2.0.0)
-      mime-types (>= 1.0, < 3.0)
-      mongoid (>= 3.0, < 5.0)
-
-GIT
-  remote: git://github.com/mongoid/mongoid.git
-  revision: fa57fca58a19b7eba4ac03cdaacee57a8924145e
-  specs:
-    mongoid (4.0.0.beta1)
-      activemodel (>= 4.0.0)
-      moped (~> 2.0.beta6)
-      origin (~> 2.1)
-      tzinfo (>= 0.3.37)
-
-GIT
   remote: git://github.com/sferik/rails_admin.git
   revision: bef6f02ee6d9fe164f23b437f0c0226d79e8c335
   specs:
@@ -106,7 +88,7 @@ GEM
       xml-simple
     bcrypt (3.1.7)
     box_view (0.0.5)
-    bson (2.2.1)
+    bson (4.2.1)
     bson_ext (1.5.1)
     builder (3.2.2)
     cancan (1.6.10)
@@ -139,7 +121,6 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.7.0)
-    connection_pool (1.2.0)
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
     createsend (4.0.2)
@@ -159,11 +140,12 @@ GEM
       rails (>= 3.0.0)
     daemons (1.1.9)
     database_cleaner (1.2.0)
-    delayed_job (4.0.2)
-      activesupport (>= 3.0, < 4.2)
-    delayed_job_mongoid (2.1.0)
+    delayed_job (4.1.2)
+      activesupport (>= 3.0, < 5.1)
+    delayed_job_mongoid (2.2.0)
       delayed_job (>= 3.0, < 5)
-      mongoid (>= 3.0, < 5)
+      mongoid (>= 3.0, < 6)
+      mongoid-compatibility
     devise (3.2.4)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
@@ -231,14 +213,18 @@ GEM
     mime-types (1.25.1)
     mini_portile (0.5.3)
     minitest (5.4.0)
-    mongo (1.3.1)
-      bson (>= 1.3.1)
+    mongo (2.4.1)
+      bson (>= 4.2.1, < 5.0.0)
+    mongoid (5.2.0)
+      activemodel (~> 4.0)
+      mongo (>= 2.4.1, < 3.0.0)
+      origin (~> 2.3)
+      tzinfo (>= 0.3.37)
+    mongoid-compatibility (0.4.1)
+      activesupport
+      mongoid (>= 2.0)
     mongoid-paperclip (0.0.9)
       paperclip (>= 2.3.6)
-    moped (2.0.0.beta6)
-      bson (~> 2.2)
-      connection_pool (~> 1.2)
-      optionable (~> 0.2.0)
     multi_json (1.10.1)
     multi_test (0.1.1)
     multi_xml (0.5.5)
@@ -250,8 +236,7 @@ GEM
     nokogiri (1.6.1)
       mini_portile (~> 0.5.0)
     oj (2.7.1)
-    optionable (0.2.0)
-    origin (2.1.1)
+    origin (2.3.0)
     orm_adapter (0.5.0)
     paperclip (4.1.1)
       activemodel (>= 3.0.0)
@@ -414,8 +399,8 @@ DEPENDENCIES
   createsend
   cucumber-rails
   database_cleaner
-  delayed_job
-  delayed_job_mongoid
+  delayed_job (~> 4.1.1)
+  delayed_job_mongoid (~> 2.2.0)
   devise
   factory_girl (~> 4.2.0)
   faker
@@ -427,9 +412,8 @@ DEPENDENCIES
   jbuilder (~> 1.2)
   jquery-turbolinks
   jquery-ui-rails
-  mongo
-  mongoid (~> 4.0.0.beta1)!
-  mongoid-grid_fs!
+  mongo (~> 2.4.1)
+  mongoid (~> 5.2.0)
   mongoid-paperclip
   mongoid_search!
   nokogiri
@@ -460,3 +444,6 @@ DEPENDENCIES
   webmock
   whenever
   zeus
+
+BUNDLED WITH
+   1.10.6
