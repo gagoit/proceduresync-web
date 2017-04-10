@@ -130,7 +130,7 @@ namespace :deploy do
     on roles(:app) do
       info "Create symlink for pids"
       execute "mkdir -pv #{shared_path}/pids && mkdir -pv #{current_path}/tmp"
-      execute "sudo ln -s #{shared_path}/pids #{current_path}/tmp/pids"
+      execute "rm -rf #{current_path}/tmp/pids && sudo ln -s #{shared_path}/pids #{current_path}/tmp/pids"
     end
   end
 
@@ -290,7 +290,7 @@ namespace :nginx do
 
 end
 
-before 'deploy:starting', 'deploy:backup_db'
+# before 'deploy:starting', 'deploy:backup_db'
 
 after 'deploy:started', 'god:stop'
 

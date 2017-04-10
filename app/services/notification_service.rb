@@ -56,7 +56,7 @@ class NotificationService < BaseService
 
     query = {access_token: access_token, device: device_token, tags: user_tags(user), enabled: enabled}
     begin
-      # response = HTTParty.post('/devices.json', :query => query, :base_uri => uri) 
+      response = HTTParty.post('/devices.json', :query => query, :base_uri => uri) 
     rescue Exception => ex
       if Rails.env.production?
         Airbrake.notify(ex)
@@ -87,7 +87,7 @@ class NotificationService < BaseService
 
     query = {access_token: access_token, device: device_token, tags: user_tags(user), enabled: enabled}
     begin
-      # response = HTTParty.post('/devices/update_tags_in_device.json', :query => query, :base_uri => uri) 
+      response = HTTParty.post('/devices/update_tags_in_device.json', :query => query, :base_uri => uri) 
     rescue Exception => ex
       if Rails.env.production?
         Airbrake.notify(ex)
@@ -134,7 +134,7 @@ class NotificationService < BaseService
 
       new_query[:payload] = {noti_id: noti.id.to_s}
 
-      # response = HTTParty.post('/notifications.json', :query => new_query, :base_uri => uri)
+      response = HTTParty.post('/notifications.json', :query => new_query, :base_uri => uri)
     rescue Exception => ex
       if Rails.env.production?
         Airbrake.notify(ex)
