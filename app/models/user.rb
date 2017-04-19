@@ -646,8 +646,8 @@ class User
     not_effective_doc_ids = company.documents.where(effective: false, is_private: false, :id.in => available_for_sync_doc_ids).pluck(:id)
     inactive_doc_ids = company.documents.where(active: false, is_private: false, :id.in => available_for_sync_doc_ids).pluck(:id)
 
-    need_remove_doc_ids += not_effective_doc_ids
-    need_remove_doc_ids += inactive_doc_ids
+    need_remove_doc_ids.concat(not_effective_doc_ids)
+    need_remove_doc_ids.concat(inactive_doc_ids)
     
     company.documents.where(:id.in => need_remove_doc_ids)
   end
@@ -657,7 +657,7 @@ class User
   # - Remove all inactive documents from All and the sub categories
   # types: "all"/"accountable"
   ##
-  def docs(company, filter = "favourite", order = [:created_at, :desc], types = "all")
+  def docs(company, filter = "favourite", order = [:created_at, :desc], types = "all", need_return_unread_number: true)
     result = {docs: [], unread_number: 0, need_count_unread_number: false}
 
     read_ids = read_document_ids + private_document_ids
@@ -666,12 +666,12 @@ class User
       # Only sees their favourite documents and can Read Document.
       available_docs = all_docs(company, order)
       result[:docs] = available_docs.active.where({:id.in => favourite_document_ids})
-      result[:need_count_unread_number] = true
+      result[:need_count_unread_number] = need_return_unread_number
 
     elsif filter == "unread"
       # Only documents that are accountable to that users area, and have not been read by that user.
       result[:docs] = assigned_docs(company).where(:id.nin => read_ids)
-      result[:unread_number] = result[:docs].count
+      result[:unread_number] = result[:docs].count if need_return_unread_number
 
     elsif filter == "private"
       result[:docs] = company.documents.active.private_with(self).order(order)
@@ -690,7 +690,7 @@ class User
       query = query_documents(company, {types: types})
 
       result[:docs] = company.documents.active.where( query ).order(order)
-      result[:need_count_unread_number] = true
+      result[:need_count_unread_number] = need_return_unread_number
     end
 
     if result[:need_count_unread_number]
@@ -1018,7 +1018,7 @@ class User
 
     invalid_doc_ids = []
     Company.where(:id.in => removed_comp_ids).each do |comp|
-      invalid_doc_ids += (comp.document_ids || [])
+      invalid_doc_ids.concat(comp.document_ids || [])
 
       user.remove_company(comp)
     end
@@ -1199,7 +1199,11 @@ class User
       supervise_for_user_ids = comp.user_companies.where(:company_path_ids.in => current_u_comp.supervisor_path_ids).pluck(:user_id)
     end
 
-    users = comp.users.where(:id.in => (available_user_ids + supervise_for_user_ids) ).full_text_search(search.downcase)
+    users = comp.users.where(:id.in => (available_user_ids + supervise_for_user_ids) )
+
+    unless search.blank?
+      users = users.full_text_search(search.downcase)
+    end
 
     users = users.order_by(sort).page(page).per(per_page)
 
@@ -1213,8 +1217,9 @@ class User
       u_comp = user.user_company(comp, true)
 
       unread_docs, total_count = Document.get_all(user, comp, {page: nil, per_page: nil, search: "", sort_by: [:title, :asc], filter: "unread"})
-      unread_docs_title = unread_docs.limit(3).pluck(:title)
-      unread_docs_length = unread_docs.count
+      unread_docs_title = unread_docs.limit(4).pluck(:title)
+      unread_docs_length = unread_docs_title.length
+      # -> Dont need to get correct unread_docs_count (unread_docs.count), just want to know it's greater than 3 or not
 
       data = {
         name: user.name,
@@ -1223,7 +1228,7 @@ class User
         emails: [user.email, user.home_email].reject{|e| e.blank?}.join(", "),
         path: comp_all_paths_hash[u_comp["company_path_ids"]],
         path_id: u_comp["company_path_ids"],
-        unread_docs: unread_docs_title.join(", "),
+        unread_docs: unread_docs_title.take(3).join(", "),
         unread_docs_length: unread_docs_length,
         id: user.id.to_s,
         active: user.active,

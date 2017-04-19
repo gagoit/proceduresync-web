@@ -100,7 +100,14 @@ class Version
     if box_status == "done" && (doc = self.document) && doc.current_version.try(:id) == id
 
       if doc_file_changed?
-        Document.where(:id => doc.id).update_all(curr_version_size: (box_file_size || 0), curr_version_text_size: (text_file_size || 0))
+        Document.where(:id => doc.id).update_all({
+          curr_version_size: (box_file_size || 0),
+          curr_version_text_size: (text_file_size || 0),
+          cv_doc_file: doc_file,
+          cv_text_file: text_file,
+          cv_created_time: created_time,
+          cv_thumbnail_url: thumbnail_url
+        })
 
         Notification.when_doc_upload_finished(self)
         Notification.when_doc_need_approve(doc) if doc.need_approval
@@ -117,6 +124,11 @@ class Version
         User.remove_invalid_docs("all", [self.document.id], [:read]) if !do_not_make_document_unread
 
         Version.where(:id => self.id).update_all(document_correction: false) if do_not_make_document_unread
+      
+      elsif image_fingerprint_changed?
+        Document.where(:id => doc.id).update_all({cv_thumbnail_url: get_thumbnail_url})
+      elsif text_file_changed?
+        Document.where(:id => doc.id).update_all({cv_text_file: text_file})
       end
     end
 

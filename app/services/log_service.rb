@@ -236,10 +236,12 @@ class LogService < BaseService
 
       tmp = format_changed_attribute(company, attr[0], attr[1], i18n_scope, options)
 
-      txt += ("<li>" + tmp + "</li>") unless tmp.blank?
+      txt << "<li>#{tmp}</li>" unless tmp.blank?
     end
 
-    [txt + "</ul>"]
+    txt << "</ul>"
+
+    [txt]
   end
 
   ##
@@ -280,10 +282,12 @@ class LogService < BaseService
       elsif value.is_a?Array
         txt = "<ul>"
         value.each do |e|
-          txt += "<li>" + format_value_lambda.call(e) + "</li>"
+          txt << "<li>#{format_value_lambda.call(e)}</li>"
         end
         
-        txt + "</ul>"
+        txt << "</ul>"
+
+        txt
       elsif options[:comp_all_paths][value]
         options[:comp_all_paths][value]
       elsif field == "permission_id"
@@ -334,11 +338,11 @@ class LogService < BaseService
 
         act_text = I18n.t(:approve, scope: i18n_scope, user_name: approver_name)
         
-        act_text += "<ul>"
+        act_text << "<ul>"
         approved_areas.each do |area|
-          act_text += "<li>#{area}</li>"
+          act_text << "<li>#{area}</li>"
         end
-        act_text += "</ul>"
+        act_text << "</ul>"
       end
 
       user_url = ActionController::Base.helpers.link_to(approver_name, (Rails.application.routes.url_helpers.users_path(search: approver_name) rescue ""), target: "_blank")

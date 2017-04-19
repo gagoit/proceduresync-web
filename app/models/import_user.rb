@@ -34,10 +34,10 @@ class ImportUser
     html = "<ul>"
 
     result.each do |key, value|
-      html += format_key_value(key, value)
+      html << format_key_value(key, value)
     end
 
-    html += "</ul>"
+    html << "</ul>"
 
     html
   end
@@ -46,16 +46,16 @@ class ImportUser
     key_text = key.blank? ? '' : (I18n.t("user.import.keys.#{key}") + ':')
     
     if value.is_a?(Hash)
-      tmp = "<li>#{key_text} " + "<ul>"
+      tmp = "<li>#{key_text} <ul>"
          
       value.each do |k, v|
-        tmp += format_key_value(k, v)
+        tmp << format_key_value(k, v)
       end
 
-      tmp += "</ul> </li>"
+      tmp << "</ul> </li>"
 
     elsif value.is_a?(Array)
-      tmp = "<li>#{key_text} " + "<ol>"
+      tmp = "<li>#{key_text} <ol>"
          
       value.each do |e|
         e_tmp = e
@@ -65,13 +65,13 @@ class ImportUser
           e_tmp = {"name" => e["name"], "email" => e["email"], "result_check" => e["result_check"]}
         end
 
-        tmp += format_key_value(nil, e_tmp)
+        tmp << format_key_value(nil, e_tmp)
       end
 
-      tmp += "</ol> </li>"
+      tmp << "</ol> </li>"
 
     else
-      tmp = "<li>#{key_text} #{value}" + "</li>"
+      tmp = "<li>#{key_text} #{value}</li>"
     end
 
     tmp

@@ -68,9 +68,16 @@ class Document
   has_many :versions, order: [:created_at, :desc]
 
   field :category_name, type: String
+
+  ## Current version info:
   field :curr_version, type: String
-  field :curr_version_size, type: Float, default: 0
-  field :curr_version_text_size, type: Float, default: 0
+  field :curr_version_size, type: Float, default: 0 # box_file_size
+  field :curr_version_text_size, type: Float, default: 0 # text_file_size
+
+  field :cv_doc_file, type: String
+  field :cv_text_file, type: String
+  field :cv_created_time, type: Time
+  field :cv_thumbnail_url, type: String
 
   field :assign_document_for, type: String
 
@@ -497,8 +504,7 @@ class Document
   # Format JSON of a document
   ##
   def to_json(current_user, curr_ver = nil, options = {} )
-    curr_ver ||= self.current_version
-    comp = options[:company] || company
+    # curr_ver ||= self.current_version
 
     result = {
       uid: self.id.to_s,
@@ -508,22 +514,23 @@ class Document
       created_at: self.created_at.utc.to_s,
       updated_at: self.updated_at.utc.to_s,
       version: self.curr_version,
-      doc_file: curr_ver.try(:get_pdf_url),
-      thumbnail_url: curr_ver.try(:get_thumbnail_url),
-      text_file: curr_ver.try(:text_file),
-      text_size: curr_ver.try(:text_file_size),
+      doc_file: self.cv_doc_file,
+      thumbnail_url: self.cv_thumbnail_url,
+      text_file: self.cv_text_file,
+      text_size: self.curr_version_text_size,
       is_inactive: self.is_inactive,
       is_favourite: current_user.favourited_doc?(self),
       category: self.category_name.to_s,
       category_id: self.category_id.to_s,
       is_private: (self.private_for_id == current_user.id),
-      doc_size: curr_ver.try(:box_file_size),
-      version_created_at: (curr_ver.created_time.utc.to_s rescue Time.now.utc.to_s)
+      doc_size: self.curr_version_size,
+      version_created_at: (self.cv_created_time.utc.to_s rescue Time.now.utc.to_s)
     }
 
     if options[:show_is_unread]
       result[:is_unread] = !(current_user.read_doc?(self))
-
+      comp = options[:company] || company
+      
       if result[:is_unread] && !current_user.is_required_to_read_doc?(comp, self)
         result[:is_unread] = false
       end
@@ -542,10 +549,11 @@ class Document
 
       next unless document
       
-      curr_ver = document.current_version
-      next unless curr_ver && !curr_ver.doc_file.blank?
+      # curr_ver = document.current_version
+      # next unless curr_ver && !curr_ver.doc_file.blank?
+      next if document.cv_doc_file.blank?
 
-      result[document.id] = document.to_json(current_user, curr_ver, options)
+      result[document.id] = document.to_json(current_user, nil, options)
     end
 
     #in case: the document is not available for user, 
@@ -658,7 +666,7 @@ class Document
     types = options[:types].blank? ? "all" : options[:types]
     ids = options[:ids].blank? ? "all" : options[:ids]
 
-    documents = user.docs(company, options[:filter], options[:sort_by], types)[:docs]
+    documents = user.docs(company, options[:filter], options[:sort_by], types, need_return_unread_number: false)[:docs]
     
     documents = documents.where(:category_id => options[:category_id]) unless options[:category_id].blank?
 

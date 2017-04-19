@@ -246,7 +246,7 @@ class PermissionService < BaseService
 
     paths = (u_comp["approver_path_ids"] || [])
     if u_comp["is_supervisor"]
-      paths += (u_comp["supervisor_path_ids"] || [])
+      paths.concat(u_comp["supervisor_path_ids"] || [])
     end
 
     paths.uniq!
