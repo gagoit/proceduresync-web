@@ -607,6 +607,26 @@ end
 
 ## Feb 22, 2016:
 ## Update the cache (unread doc, accountable doc) for user
-UserCompany.includes(:user, :company).each do |u_comp|
-  u_comp.user.update_docs_count(u_comp.company, u_comp) if u_comp.user
+# UserCompany.includes(:user, :company).each do |u_comp|
+#   u_comp.user.update_docs_count(u_comp.company, u_comp) if u_comp.user
+# end
+
+## April 20, 2017:
+## Update the cache version info in document
+i = 1
+Document.all.each do |doc|
+  curr_v = doc.current_version
+  next if curr_v.blank?
+
+  puts "[#{i}] doc: #{doc.id} -- ver: #{curr_v.id}"
+
+  Document.where(:id => doc.id).update_all({
+    curr_version_size: (curr_v.box_file_size || 0),
+    curr_version_text_size: (curr_v.text_file_size || 0),
+    cv_doc_file: curr_v.doc_file,
+    cv_text_file: curr_v.text_file,
+    cv_created_time: curr_v.created_time,
+    cv_thumbnail_url: curr_v.get_thumbnail_url
+  })
+  i += 1
 end

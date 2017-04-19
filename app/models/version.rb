@@ -106,7 +106,7 @@ class Version
           cv_doc_file: doc_file,
           cv_text_file: text_file,
           cv_created_time: created_time,
-          cv_thumbnail_url: thumbnail_url
+          cv_thumbnail_url: get_thumbnail_url
         })
 
         Notification.when_doc_upload_finished(self)
