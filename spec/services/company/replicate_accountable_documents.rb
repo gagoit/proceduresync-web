@@ -75,7 +75,8 @@ describe "CompanyService:" do
           to_section = (@all_paths.keys - @doc.belongs_to_paths).first
           user1, u1_comp = create_user(@company, {paths: {company_path_ids: to_section}})
 
-          expect(@doc.company_users(@company).accountable.pluck(:user_id).include?(user1.id)).to eq(false)
+          # expect(@doc.company_users(@company).accountable.pluck(:user_id).include?(user1.id)).to eq(false)
+          expect(@doc.company_users(@company).pluck(:user_id).include?(user1.id)).to eq(false)
 
           result = CompanyService.replicate_accountable_documents(@company, {from_section: @from_section, to_section: to_section})
           
@@ -89,9 +90,10 @@ describe "CompanyService:" do
 
           DocumentService.add_accountable_to_paths(@company, @doc, [to_section])
 
-          expect(@doc.company_users(@company).accountable.pluck(:user_id).include?(user1.id)).to eq(true)
+          # expect(@doc.company_users(@company).accountable.pluck(:user_id).include?(user1.id)).to eq(true)
+          expect(@doc.company_users(@company).pluck(:user_id).include?(user1.id)).to eq(true)
 
-          DocumentService.create_unread_doc_noti_in_web_admin(
+          WebNotification.create_from_document(
             @doc, 
             { new_version: false, new_avai_user_ids: [user1.id] }
           )

@@ -5,7 +5,7 @@ class UserDocument
   belongs_to :user
   belongs_to :document
 
-  field :is_accountable, type: Boolean, default: true
+  field :is_accountable, type: Boolean, default: false
   field :is_favourited, type: Boolean, default: false
   field :is_read, type: Boolean, default: false
 
@@ -19,7 +19,10 @@ class UserDocument
     {user_id: 1, is_favourited: 1},
     {user_id: 1, is_accountable: 1, updated_at: 1, is_favourited: 1},
     {user_id: 1, document_id: 1},
-    {document_id: 1, is_accountable: 1}
+    {document_id: 1, is_accountable: 1},
+    {user_id: 1},
+    {document_id: 1},
+    {user_id: 1, updated_at: 1}
   ]
 
   INDEXES.each do |ind|

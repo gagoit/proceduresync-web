@@ -437,8 +437,10 @@ describe "User: new_docs:" do
 
         non_accountable_doc.curr_version = "1.0"
         non_accountable_doc.save
+        UserService.update_user_documents({document: non_accountable_doc, company: @company})
+
         @user.favour_document!(non_accountable_doc)
-        UserService.update_user_documents({user: @user, company: @company, document: non_accountable_doc})
+        # UserService.update_user_documents({user: @user, company: @company, document: non_accountable_doc})
 
         @doc1.belongs_to_paths << u_comp.company_path_ids
         @doc1.save

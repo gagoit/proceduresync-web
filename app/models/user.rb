@@ -610,7 +610,7 @@ class User
       if last_timestamp = (options[:after_timestamp].to_s.to_time.utc rescue nil)
         all_doc_ids = company.documents.where(query).pluck(:id)
 
-        new_doc_ids = company_documents(company).available_for_sync.where({:updated_at.gte => last_timestamp}).pluck(:document_id)
+        new_doc_ids = company_documents(company).where({:updated_at.gte => last_timestamp}).pluck(:document_id)
 
         need_sync_doc_ids = (new_doc_ids & all_doc_ids)
 
@@ -631,7 +631,7 @@ class User
   #   options: {after_timestamp}
   ##
   def docs_need_remove_in_app(company, options = {})
-    comp_docs = company_documents(company).not_available_for_sync
+    comp_docs = company_documents(company)
 
     if last_timestamp = (options[:after_timestamp].to_s.to_time.utc rescue nil)
       comp_docs = comp_docs.where({:updated_at.gte => last_timestamp.advance(days: -1)})
@@ -642,9 +642,8 @@ class User
     need_remove_doc_ids = doc_ids - new_sync_doc_ids
 
     #available for sync but not effective or inactive
-    available_for_sync_doc_ids = company_documents(company).available_for_sync.pluck(:document_id)
-    not_effective_doc_ids = company.documents.where(effective: false, is_private: false, :id.in => available_for_sync_doc_ids).pluck(:id)
-    inactive_doc_ids = company.documents.where(active: false, is_private: false, :id.in => available_for_sync_doc_ids).pluck(:id)
+    not_effective_doc_ids = company.documents.where(effective: false, is_private: false, :id.in => new_sync_doc_ids).pluck(:id)
+    inactive_doc_ids = company.documents.where(active: false, is_private: false, :id.in => new_sync_doc_ids).pluck(:id)
 
     need_remove_doc_ids.concat(not_effective_doc_ids)
     need_remove_doc_ids.concat(inactive_doc_ids)
@@ -1519,8 +1518,8 @@ class User
     read_ids = read_document_ids + private_document_ids
 
     u_comp ||= user_company(company)
-    u_comp.accountable_docs_count = accountable_docs.count
-    u_comp.unread_docs_count = accountable_docs.where(:id.nin => read_ids).count
+    u_comp.accountable_docs_count = accountable_docs.size
+    u_comp.unread_docs_count = accountable_docs.where(:id.nin => read_ids).size
     u_comp.need_update_docs_count = false
 
     u_comp.save

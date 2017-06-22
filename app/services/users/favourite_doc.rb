@@ -17,7 +17,6 @@ module Users
           filter: (params[:filter] || "all"), category_id: params[:filter_category_id], types: (params[:document_types] || "all"), ids: ids, order_by_ranking: params[:order_by_ranking]})
 
       action_time = Time.now.utc
-      u_comp = user.user_company(company, true)
       doc_ids = []
       act_log_hash = {action: ActivityLog::ACTIONS[:favourite_document]}
 
@@ -35,16 +34,7 @@ module Users
           act_log_hash[:action_time] = action_time
           user.create_logs(company, act_log_hash)
 
-          u_doc = user.company_documents(company).where({document_id: doc.id})
-          is_favourited = true
-          is_accountable = doc.private_for_id == user.id || doc.approved_paths.include?(u_comp["company_path_ids"])
-
-          if u_doc.count == 0
-            user.create_user_document(company, {document_id: doc.id, is_favourited: is_favourited, 
-              is_accountable: is_accountable})
-          else
-            u_doc.update_all({is_favourited: is_favourited, is_accountable: is_accountable, updated_at: Time.now.utc})
-          end
+          UserDocuments::UpdateStatus.call(company, user, doc, {is_favourited: true})
         end
 
         doc_ids << doc.id
@@ -62,7 +52,6 @@ module Users
           filter: (params[:filter] || "all"), category_id: params[:filter_category_id], types: (params[:document_types] || "all"), ids: ids, order_by_ranking: params[:order_by_ranking]})
 
       action_time = Time.now.utc
-      u_comp = user.user_company(company, true)
       doc_ids = []
       act_log_hash = {action: ActivityLog::ACTIONS[:unfavourite_document]}
 
@@ -78,16 +67,7 @@ module Users
           act_log_hash[:action_time] = action_time
           user.create_logs(company, act_log_hash)
 
-          u_doc = user.company_documents(company).where({document_id: doc.id})
-          is_favourited = false
-          is_accountable = doc.private_for_id == user.id || doc.approved_paths.include?(u_comp["company_path_ids"])
-
-          if u_doc.count == 0
-            user.create_user_document(company, {document_id: doc.id, is_favourited: is_favourited, 
-              is_accountable: is_accountable})
-          else
-            u_doc.update_all({is_favourited: is_favourited, is_accountable: is_accountable, updated_at: Time.now.utc})
-          end
+          UserDocuments::UpdateStatus.call(company, user, doc, {is_favourited: false})
         else
           
         end

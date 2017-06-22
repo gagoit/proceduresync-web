@@ -125,6 +125,8 @@ class Document
   index({created_at: -1})
   index({private_for_id: 1})
 
+  index({company_id: 1, active: 1, is_private: 1, effective_time: 1, assign_document_for: 1, approved_paths: 1})
+
   scope :active, -> {where({active: true})}
   scope :inactive, -> {where({active: false})}
   scope :public_all, -> {where(is_private: false)}

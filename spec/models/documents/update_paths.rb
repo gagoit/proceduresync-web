@@ -146,14 +146,14 @@ describe "Document: update_paths:" do
         #in test mode, it's not run the delayed job, so we will run it manually
         # UserService.update_user_documents({document: @doc, company: @company})
         DocumentService.add_accountable_to_paths(@company, @doc, @all_paths.keys)
-        # DocumentService.create_unread_doc_noti_in_web_admin(
+        # WebNotification.create_from_document(
         #   @doc, 
         #   {
         #     new_version: false,
         #     new_avai_user_ids: [@user.id, user1.id]
         #   }
         # )
-        u_ids = @doc.company_users(@company).accountable.pluck(:user_id)
+        u_ids = @doc.company_users(@company).pluck(:user_id)
         expect(u_ids.include?(@user.id)).to eq(true)
         expect(u_ids.include?(user1.id)).to eq(true)
 
@@ -344,7 +344,7 @@ describe "Document: update_paths:" do
       #in test mode, it's not run the delayed job, so we will run it manually
       # UserService.update_user_documents({document: @doc, company: @company})
       DocumentService.add_accountable_to_paths(@company, @doc, new_paths)
-      DocumentService.create_unread_doc_noti_in_web_admin(
+      WebNotification.create_from_document(
         @doc, 
         {
           new_version: false,

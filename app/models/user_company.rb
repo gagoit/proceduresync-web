@@ -40,6 +40,7 @@ class UserCompany
 
   index({company_id: 1})
   index({company_id: 1, user_type: 1})
+  index({company_id: 1, company_path_ids: 1})
 
   scope :by_company, ->(comp_id) {where(company_id: comp_id)}
   scope :approvers, -> {where(is_approver: true)}

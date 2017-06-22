@@ -158,6 +158,7 @@ describe "User" do
         @doc.private_for_id = @user.id
         @doc.save
 
+        @user.reload
         expect(@user.favourite_document_ids.length).to eq(1)
         expect(@user.read_document_ids.length).to eq(1)
         expect(@user.private_document_ids.length).to eq(1)
@@ -220,6 +221,9 @@ describe "User" do
         u_comp.save
         @user.reload
         @doc.reload
+
+        #in test mode, it's not run the delayed job, so we will run it manually
+        UserService.update_user_documents({user: @user, company: @company})
 
         old_updated_at = @user.company_documents(@company).where({document_id: @doc.id}).first.try(:updated_at)
         expect(old_updated_at).to_not eq(nil)

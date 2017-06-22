@@ -45,6 +45,8 @@ class Notification
 
   index({user_id: 1, company_id: 1})
   index({user_id: 1, company_id: 1, status: 1})
+  index({user_id: 1, company_id: 1, type: 1})
+  index({user_id: 1, type: 1, document_id: 1})
 
   def self.when_doc_upload_finished(version)
     return unless ((doc = version.document) && (comp = doc.company))
@@ -81,10 +83,11 @@ class Notification
     users_info = comp.user_companies.where(:company_path_ids.in => doc.approved_paths, :user_id.nin => doc.read_user_ids).pluck(:user_id, :company_path_ids)
     
     users_info.each do |u|
-      noti = Notification.find_or_initialize_by({user_id: u[0], company_id: comp.id, type: TYPES[:unread_document][:code], 
+      noti = Notification.find_or_initialize_by({user_id: u[0], type: TYPES[:unread_document][:code], 
           document_id: doc.id})
 
       noti.created_at = Time.now.utc
+      noti.company_id = comp.id
 
       new_added_paths = []
       if options[:changed_paths]
@@ -111,12 +114,13 @@ class Notification
     approver_ids = approver_infos_hash.keys - doc.approved_by_ids
 
     approver_ids.each do |a_id|
-      noti = Notification.find_or_initialize_by({user_id: a_id, company_id: comp.id, type: TYPES[:document_to_approve][:code], 
+      noti = Notification.find_or_initialize_by({user_id: a_id, type: TYPES[:document_to_approve][:code], 
           document_id: doc.id})
 
       need_sent_email = noti.new_record?
 
       noti.created_at = Time.now.utc
+      noti.company_id = comp.id
       noti.status = UNREAD_STATUS
       noti.save
 

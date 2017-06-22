@@ -258,7 +258,7 @@ describe "PermissionService" do
       end
 
       it "user has bulk_assign_documents, not add_edit_documents, and is supervisor, user will only do bulk_assign_documents for approve for areas + superviso for areas" do
-        @u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
+        u_comp = assign_user_to_path(@user, @company, {company_path_ids: @all_paths.keys.first})
         @user.reload
 
         #just has bulk_assign_documents
