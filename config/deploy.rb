@@ -50,7 +50,7 @@ set :use_sudo, true
 set :rails_env, "production" #added for delayed job
 
 #set :delayed_job_server_role, :worker
-set :delayed_job_args, [" -i update_data --queue=update_data", " -i notification_and_convert_doc --queue=notification_and_convert_doc", " -i other"]
+# set :delayed_job_args, [" -i update_data --queue=update_data", " -i notification_and_convert_doc --queue=notification_and_convert_doc", " -i other"]
 
 namespace :deploy do
 
