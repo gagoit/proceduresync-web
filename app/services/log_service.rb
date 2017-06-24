@@ -227,7 +227,7 @@ class LogService < BaseService
     except_fields = ["_keywords", "updated_at", "need_validate_required_fields", "updated_by_id",
       "utf8", "authenticity_token", "document", "format",
       "action", "controller", "id", "approved", "category_id", "need_approval", "approved_by_ids",
-      "read_user_ids", "effective", "belongs_to_paths"]
+      "read_user_ids", "effective", "belongs_to_paths", "not_restrict_viewing"]
 
     txt = "<ul>"
 
