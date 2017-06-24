@@ -33,6 +33,7 @@ class Document
   #When user Add/Edit document: When they click Restricted, there will be one more option in the Assign Document / Action: 
   #"Restrict to these Areas"
   field :restricted_paths, type: Array, default: []
+  field :not_restrict_viewing, type: Boolean, default: true # True if assign_document_for != ASSIGN_FOR[:restricted]
 
   field :is_private, type: Boolean, default: false
 
@@ -125,7 +126,7 @@ class Document
   index({created_at: -1})
   index({private_for_id: 1})
 
-  index({company_id: 1, active: 1, is_private: 1, effective_time: 1, assign_document_for: 1, approved_paths: 1})
+  index({company_id: 1, active: 1, is_private: 1, effective: 1, not_restrict_viewing: 1, approved_paths: 1})
 
   scope :active, -> {where({active: true})}
   scope :inactive, -> {where({active: false})}
@@ -134,8 +135,8 @@ class Document
   scope :public_with_in_company, ->(current_user, current_company) { where(company_id: current_company.id).any_of({is_private: false}, {is_private: true, private_for_id: current_user.id})}
   scope :private_with, ->(current_user) {where(is_private: true, private_for_id: current_user.id)}
   scope :has_success_version, -> {where(:'versions.box_status' => 'done')}
-  scope :effective, -> {where(:effective_time.lte => Time.now.utc)}
-  scope :not_restrict_viewing, -> {where(:assign_document_for.ne => ASSIGN_FOR[:restricted])}
+  scope :effective, -> {where(effective: true)}
+  scope :not_restrict_viewing, -> {where(not_restrict_viewing: true)}
 
   after_create do
     #Create log
@@ -200,6 +201,8 @@ class Document
       self.category_name = category.try(:name)
     end
 
+    self.not_restrict_viewing = (assign_document_for != ASSIGN_FOR[:restricted])
+
     if company 
       self.need_approval = (company.is_advanced? || (company.is_hybrid? && self.assign_document_for == ASSIGN_FOR[:approval]))
       
@@ -227,7 +230,7 @@ class Document
     Document.where(:id => self.id).update_all(need_validate_required_fields: false, document_correction: false) if need_validate_required_fields
 
     if self.created_at != self.updated_at
-      [:category_id, :title, :doc_id, :created_time, :expiry, :effective_time, :restricted, :active, 
+      [:category_id, :title, :doc_id, :created_time, :expiry, :effective_time, :effective, :restricted, :active, 
         :belongs_to_paths, :curr_version].each do |f|
         
         if self.send(:"#{f}_changed?")
@@ -462,7 +465,7 @@ class Document
   #  assign_document_for != ASSIGN_FOR[:restricted]
   ##
   def is_not_restrict_viewing
-    assign_document_for != ASSIGN_FOR[:restricted]
+    not_restrict_viewing
   end
 
   ##
@@ -892,7 +895,9 @@ class Document
         doc.correct_paths
         Document.where(:id => doc.id).update_all(need_approval: false, approved: true, assign_document_for: ASSIGN_FOR[:accountable],
               belongs_to_paths: doc.belongs_to_paths, approved_paths: doc.approved_paths, 
-              not_approved_paths: doc.not_approved_paths, not_accountable_for: doc.not_accountable_for, updated_by_id: user.id)
+              not_approved_paths: doc.not_approved_paths, not_accountable_for: doc.not_accountable_for, 
+              not_restrict_viewing: true, updated_by_id: user.id)
+
         doc.create_logs({ user_id: user.id, action: ActivityLog::ACTIONS[:updated_document], 
               attrs_changes: doc.changes })
 

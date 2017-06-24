@@ -557,7 +557,7 @@ class User
     end
 
     if options[:types] == "accountable"
-      query.merge!({:assign_document_for.ne => Document::ASSIGN_FOR[:restricted]})
+      query.merge!({not_restrict_viewing: true})
     end
 
     query
