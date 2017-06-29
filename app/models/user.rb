@@ -1513,11 +1513,12 @@ class User
   ##
   def update_docs_count(company = nil, u_comp = nil)
     return unless company
+    u_comp ||= user_company(company)
+    return unless u_comp
 
     accountable_docs =  assigned_docs(company)
     read_ids = read_document_ids + private_document_ids
 
-    u_comp ||= user_company(company)
     u_comp.accountable_docs_count = accountable_docs.size
     u_comp.unread_docs_count = accountable_docs.where(:id.nin => read_ids).size
     u_comp.need_update_docs_count = false
