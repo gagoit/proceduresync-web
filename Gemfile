@@ -106,7 +106,8 @@ gem 'whenever'
 gem 'delayed_job', '~> 4.1.1'
 gem 'delayed_job_mongoid', '~> 2.2.0'
 
-gem 'box_view'
+gem 'box_view' #for old version
+gem 'boxr'     #for v2 version
 
 gem 'remotipart'
 

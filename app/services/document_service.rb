@@ -3,6 +3,11 @@ class DocumentService < BaseService
   # Upload document to Box-View
   ##
   def self.upload_to_box(version)
+    if version.in_new_box
+      NewBox::UploadDocument.call(version.id)
+      return
+    end
+
     begin
       return if version.blank? || version.file_url.blank?
 
@@ -27,13 +32,19 @@ class DocumentService < BaseService
         get_thumbnail(version, doc)
       elsif doc.status == "error"
         Notification.when_doc_upload_finished(version)
-        BaseService.notify_or_ignore_error(Exception.new("Document is falied when uploaded: #{version.document.try(:title)} with version #{version.id}"))
+        AppErrors::Create.call(
+          version.document.try(:company_id), "upload_document", 
+          "[DocumentService.upload_to_box][document_id: #{version.document_id}][version_id: #{version.id}]: box-doc is error"
+        )
       end
     rescue Exception => e
-      puts "upload-doc-to-box failed: #{e.message}"
       version.update_attributes({box_status: "error"})
       Notification.when_doc_upload_finished(version)
-      BaseService.notify_or_ignore_error(e)
+      
+      AppErrors::Create.call(
+        version.document.try(:company_id), "upload_document", 
+        "[DocumentService.upload_to_box][document_id: #{version.document_id}][version_id: #{version.id}] Exception: #{e.message} | At: #{get_first_line_num_in_exception(e)}"
+      )
     end
   end
 
@@ -41,6 +52,11 @@ class DocumentService < BaseService
   # Get converted document from Box-View
   ##
   def self.get_converted_document(version)
+    if version.in_new_box
+      NewBox::GetConvertedDocument.delay(queue: "notification_and_convert_doc").call(version.id)
+      return
+    end
+
     begin
       return if version.blank? || version.file_url.blank? || version.box_view_id.blank? || version.box_status == "done" || version.attemps_num_download_converted_file.to_i > Version::MAX_ATTEMPS_NUM_DOWNLOAD
 
@@ -65,11 +81,19 @@ class DocumentService < BaseService
 
         get_thumbnail(version, doc)
       elsif doc.status == "error"
-        BaseService.notify_or_ignore_error(Exception.new("Document is falied when uploaded: #{version.document.try(:title)} with version #{version.id}"))
+
+        AppErrors::Create.call(
+          version.document.try(:company_id), "upload_document", 
+          "[DocumentService.get_converted_document][document_id: #{version.document_id}][version_id: #{version.id}]: box-doc is error"
+        )
       end
     rescue Exception => e
       version.update_attributes({box_status: "error"})
-      BaseService.notify_or_ignore_error(e)
+      
+      AppErrors::Create.call(
+        version.document.try(:company_id), "upload_document", 
+        "[DocumentService.get_converted_document][document_id: #{version.document_id}][version_id: #{version.id}] Exception: #{e.message} | At: #{get_first_line_num_in_exception(e)}"
+      )
     end
   end
 
@@ -122,9 +146,13 @@ class DocumentService < BaseService
       upload_file_to_s3(version, file_name_encrypted, format)
     rescue Exception => e
       if num_call < 3
-        download_zipfile_from_box(version, box_doc, format, (num_call + 1)) 
+        return download_zipfile_from_box(version, box_doc, format, (num_call + 1)) 
       end
-      BaseService.notify_or_ignore_error(e)
+
+      AppErrors::Create.call(
+        doc.try(:company_id), "upload_document", 
+        "[DocumentService.get_converted_document][document_id: #{version.document_id}][version_id: #{version.id}] Exception: #{e.message} | At: #{get_first_line_num_in_exception(e)}"
+      )
     end
   end
 
@@ -132,20 +160,16 @@ class DocumentService < BaseService
   # After get zip file from Box, upload this file to S3
   ##
   def self.upload_file_to_s3(version, file_name, format = 'zip')
+    url = ""
     begin
       doc = version.document
-      url = ''
-
       s3 = AWS::S3.new(access_key_id: CONFIG[:amazon_access_key],
           secret_access_key: CONFIG[:amazon_secret])
-
       current_bucket = s3.buckets[CONFIG[:bucket]]
 
       doc_name_parts = { title: doc.title.naming_file_and_folder(' ').gsub(' ', '+'), version: "v#{version.code}" }
-
       name_on_s3 = ["#{doc.company_id}", "documents", "#{doc_name_parts[:title]}", 
         "#{doc_name_parts[:version]}"]
-
 
       name_on_s3 << "#{doc_name_parts.values.join('-')}.#{format}"
       obj = current_bucket.objects[name_on_s3.join("/")]
@@ -166,12 +190,16 @@ class DocumentService < BaseService
       elsif format == 'txt'
         version.update_attributes({text_file: url})
       end
-
-      url
     rescue Exception => e
-      BaseService.notify_or_ignore_error(e)
-      ""
+      url = ""
+
+      AppErrors::Create.call(
+        doc.try(:company_id), "upload_document", 
+        "[DocumentService.upload_file_to_s3][document_id: #{version.document_id}][version_id: #{version.id}] Exception: #{e.message} | At: #{get_first_line_num_in_exception(e)}"
+      )
     end
+
+    url
   end
 
   ##
@@ -181,27 +209,37 @@ class DocumentService < BaseService
     begin
       file_name = "tmp/#{version.document_id}-#{version.id}.png"
       f = File.open(file_name, 'w', encoding: 'ASCII-8BIT')
-
       attemps = 0
 
       while attemps < 10
         begin
           f.write(box_doc.thumbnail(1024, 768))
+          f.flush
+
           attemps = 100
         rescue Exception => e
           attemps += 1
+
+          if attemps == 10
+            AppErrors::Create.call(
+              version.document.try(:company_id), "upload_document", 
+              "[DocumentService.get_thumbnail][document_id: #{version.document_id}][version_id: #{version.id}] Exception: #{e.message} | At: #{get_first_line_num_in_exception(e)}"
+            )
+          end
         end
       end
 
-      f.flush
-
-      #upload_file_to_s3(version, file_name, 'png')
-      version.image = f
-      version.save
+      if attemps == 100
+        version.image = f
+        version.save
+      end
 
       f.close
     rescue Exception => e
-      BaseService.notify_or_ignore_error(e)
+      AppErrors::Create.call(
+        version.document.try(:company_id), "upload_document", 
+        "[DocumentService.get_thumbnail][document_id: #{version.document_id}][version_id: #{version.id}] Exception: #{e.message} | At: #{get_first_line_num_in_exception(e)}"
+      )
     end
   end
 
@@ -220,12 +258,15 @@ class DocumentService < BaseService
   #  - add_accountability: "Make document(s) accountable document(s) for the following users"
   ##
   def self.add_accountable_to_paths(company, document, paths, options={})
-    user_ids_in_paths = options.has_key?(:user_ids_in_paths) ? options[:user_ids_in_paths] : company.user_companies.where(:company_path_ids.in => paths).pluck(:user_id)
+    if options.has_key?(:new_paths)
+      new_available_for_user_ids = company.user_companies.where(:company_path_ids.in => options[:new_paths]).pluck(:user_id)
+    else
+      user_ids_in_paths = options.has_key?(:user_ids_in_paths) ? options[:user_ids_in_paths] : company.user_companies.where(:company_path_ids.in => paths).pluck(:user_id)
+      return if user_ids_in_paths.blank?
 
-    return if user_ids_in_paths.blank?
-
-    already_available_for_user_ids = document.company_users(company).pluck(:user_id)
-    new_available_for_user_ids = user_ids_in_paths - already_available_for_user_ids
+      already_available_for_user_ids = document.company_users(company).pluck(:user_id)
+      new_available_for_user_ids = user_ids_in_paths - already_available_for_user_ids  
+    end
 
     return if new_available_for_user_ids.blank?
 

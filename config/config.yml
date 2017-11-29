@@ -6,6 +6,8 @@ development:
   freshdesk_sso_decret: 2573418327cfee13bd08fc6781f3d39b
   terms_and_conditions_boxview_id: "1cdacef2833b4345b13c52f272840188"
   box_view_key: ev21e6rqgp5h5ya7wu3w8hr6r1uhd7mr
+  box_view_access_token: vCEB3HD0NBsxTpf2oeqQybAXBlyLZZ4D
+  documents_folder_boxview_id: 33827718254
 production:
   amazon_access_key: AKIAJ6PY3P7OX6SZ253A
   amazon_secret: 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
@@ -14,6 +16,8 @@ production:
   freshdesk_sso_decret: 49af4f8ba01ef08ee68b1eb73beef971
   terms_and_conditions_boxview_id: "fddb3b9f9f6c4f9e8640376a5e743985"
   box_view_key: tgsj645pee2cyaw5xx0o01sswq8dd963
+  box_view_access_token: a3wlt5Bzy78ovE7EiexWqehi7nYuW2j0
+  documents_folder_boxview_id: 33827718254
 test:
   amazon_access_key: AKIAJ6PY3P7OX6SZ253A
   amazon_secret: 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
@@ -22,3 +26,5 @@ test:
   freshdesk_sso_decret: 2573418327cfee13bd08fc6781f3d39b
   terms_and_conditions_boxview_id: "1cdacef2833b4345b13c52f272840188"
   box_view_key: ev21e6rqgp5h5ya7wu3w8hr6r1uhd7mr
+  box_view_access_token: vCEB3HD0NBsxTpf2oeqQybAXBlyLZZ4D
+  documents_folder_boxview_id: 33827718254

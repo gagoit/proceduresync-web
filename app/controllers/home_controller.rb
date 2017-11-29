@@ -50,10 +50,12 @@ class HomeController < ApplicationController
     StaticFile.all.each do |s_f|
       view_url = assets_url = ""
       view_url, assets_url = s_f.get_box_url
+      file_access_token = NewBox::GetFileToken.call(s_f.box_view_id)
 
       result[s_f.name] = {
         view_url: view_url,
-        assets_url: assets_url
+        assets_url: assets_url,
+        file_access_token: file_access_token
       }
     end
     

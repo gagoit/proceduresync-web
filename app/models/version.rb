@@ -47,8 +47,9 @@ class Version
   validates_attachment_content_type :image, :content_type => %w(image/png image/jpg image/jpeg image/gif)
 
 
+  field :old_box_view_id, type: String #ID of doc in Old Box View
   field :box_view_id, type: String #ID of doc in Box View
-
+  field :in_new_box, type: Boolean
   field :box_status, type: String, default: 'processing'
       #(document status in Box) An enum indicating the conversion status of this document.
       #Can be queued, processing, done, or error.
@@ -166,6 +167,8 @@ class Version
   #  assets url: https://view-api.box.com/1/sessions/8d687fbdc96942d38ca66014175750fd/assets
   ##
   def get_box_url
+    return get_new_box_url if in_new_box
+
     doc = nil
 
     begin
@@ -190,5 +193,9 @@ class Version
     end
 
     return view_url, assets_url
+  end
+
+  def get_new_box_url
+    return NewBox::GetEmbedUrl.call(box_view_id), nil
   end
 end

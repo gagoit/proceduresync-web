@@ -1,7 +1,9 @@
 - has_favourite = current_user.favourited_doc?(@document)
 - favourite_btn_title = has_favourite ? "Unfavourite" : "Favourite"
 - favourite_icon =  has_favourite ? 'fa-star' : 'fa-star-o'
-.page-content#document_view_page
+- in_new_box = !!@version.in_new_box
+
+.page-content#document_view_page{"data-new-box" => in_new_box.to_s}
   .page-subheading.page-subheading-md
     %ol.breadcrumb
       %li.title-doc
@@ -21,14 +23,15 @@
             %h4.panel-title-doc
               = @document.title
 
-              %a.pull-right.help-icon.left-5#zoom-in-btn{:href => "", "title" => "Zoom In", "data-placement" => "bottom", "data-toggle" => "tooltip"}
-                %i.fa.fa-lg.fa-search-plus
+              - unless in_new_box
+                %a.pull-right.help-icon.left-5#zoom-in-btn{:href => "", "title" => "Zoom In", "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                  %i.fa.fa-lg.fa-search-plus
 
-              %a.pull-right.help-icon.left-5#zoom-out-btn{:href => "", "title" => "Zoom Out", "data-placement" => "bottom", "data-toggle" => "tooltip"}
-                %i.fa.fa-lg.fa-search-minus
+                %a.pull-right.help-icon.left-5#zoom-out-btn{:href => "", "title" => "Zoom Out", "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                  %i.fa.fa-lg.fa-search-minus
 
-              %a.pull-right.help-icon.left-5#print-btn{:href => download_pdf_document_version_path(@document, @version, format: :pdf), :target => "_blank", "title" => "Download and Print", "data-placement" => "bottom", "data-toggle" => "tooltip"}
-                %i.fa.fa-lg.fa-print
+                %a.pull-right.help-icon.left-5#print-btn{:href => download_pdf_document_version_path(@document, @version, format: :pdf), :target => "_blank", "title" => "Download and Print", "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                  %i.fa.fa-lg.fa-print
 
               %a.pull-right.help-icon#favourite-btn{:href => favourite_document_path(@document), "title" => favourite_btn_title, "data-placement" => "bottom", "data-toggle" => "tooltip", "data-favourite-text" => "Favourite", "data-unfavourite-text" => "Unfavourite"}
                 %i.fa.fa-lg{class: favourite_icon}
@@ -39,7 +42,7 @@
               = 'Restricted' if @document.restricted
           .panel-body.text-center.pdf-panel
             - if @view_url
-              = render "documents/box_view", view_url: @view_url, assets_url: @assets_url
+              = render "documents/box_view", view_url: @view_url, assets_url: @assets_url, doc_box_id: @version.box_view_id, file_access_token: @file_access_token, in_new_box: in_new_box
             - else
               Document is processing. Please try again later.
 

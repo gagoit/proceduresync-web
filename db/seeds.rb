@@ -630,3 +630,14 @@ Document.all.each do |doc|
   })
   i += 1
 end
+
+Document.all.each do |document|
+  restricted = document.assign_document_for != Document::ASSIGN_FOR[:restricted]
+
+  Document.where(id: document.id).update_all({not_restrict_viewing: restricted})
+end
+
+## Migrate old box to new
+Version.all.each do |version|
+  Version.where(id: version.id).update_all(old_box_view_id: version.box_view_id)
+end

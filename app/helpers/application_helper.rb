@@ -334,8 +334,8 @@ module ApplicationHelper
     docs = {}
 
     notis.each do |e|
-      icon = e.document_id ? image_tag( "demo/thumb1.png", class: "doc-icon-right pull-left") : "<i class='fa fa-warning fa-2x'></i>"
-      
+      icon = "<i class='fa fa-warning fa-2x'></i>"
+
       if e.type == "credit_card_invalid"
         href = edit_company_path(company)
         text = e.send("#{e.type}_text".to_sym)
@@ -344,6 +344,7 @@ module ApplicationHelper
           doc = e.document
           docs[e.document_id] = e.document
         end
+        icon = image_tag((doc.cv_thumbnail_url || "demo/thumb1.png"), class: "doc-icon-right pull-left")
         href = Rails.application.routes.url_helpers.document_version_path(doc, doc.current_version) rescue "javascript:;"
         
         if e.type == Notification::TYPES[:document_to_approve][:code]

@@ -1,2 +1,16 @@
-.pdf-viewer{:'data-url' => @assets_url}
-%iframe.pdf-viewer-ie8{:allowfullscreen => "allowfullscreen", :src => @view_url, style: "width: 100%;"}
+- if in_new_box
+  - content_for :box_preview do
+    / polyfill.io only loads a Promise polyfill if your browser needs one
+    %script{src: "https://cdn.polyfill.io/v2/polyfill.min.js?features=Promise"}
+    / Latest version of Box Content Preview for en-US locale
+    %script{src: "https://cdn01.boxcdn.net/platform/preview/1.4.0/en-US/preview.js"}
+    %link{href: "https://cdn01.boxcdn.net/platform/preview/1.4.0/en-US/preview.css", rel: "stylesheet"}
+
+  - unless doc_box_id.blank?
+    .pdf-viewer{:'data-doc-box-id' => doc_box_id, :'data-file-access-token' => file_access_token}
+
+  %iframe.pdf-viewer-ie8{allowfullscreen: "allowfullscreen", src: view_url, style: "width: 100%;"}
+
+- else
+  .pdf-viewer{:'data-url' => assets_url}
+  %iframe.pdf-viewer-ie8{:allowfullscreen => "allowfullscreen", :src => view_url, style: "width: 100%;"}

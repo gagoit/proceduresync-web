@@ -563,6 +563,12 @@ var Document = {
   init_box_view: function(parent_div){
     var self = this;
 
+    //Switch to new box
+    if(parent_div.data("newBox")){
+      self.init_new_box_view(parent_div);
+      return;
+    }
+
     if(ie < Proceduresync.OLD_IE_VERSION){
      self.init_box_view_for_ie8(parent_div);
      return;
@@ -654,6 +660,118 @@ var Document = {
   },
 
   /**
+  * Init new box view for document
+  **/
+  init_new_box_view: function(parent_div){
+    var self = this;
+
+    if(ie < Proceduresync.OLD_IE_VERSION){
+     self.init_new_box_view_for_ie8(parent_div);
+     return;
+    }
+
+    var pdf_view = parent_div.find(".pdf-viewer");
+    if(pdf_view.length == 0){
+      self.init_new_box_view_for_ie8(parent_div);
+      return;
+    }
+
+    parent_div.find(".pdf-viewer-ie8").hide();
+    var fileId = pdf_view.data("docBoxId") + "";
+    var fileAccessToken = pdf_view.data("fileAccessToken");
+
+    try{
+
+      var preview = new Box.Preview();
+
+      preview.addListener('load', function(data){
+        var viewer = data.viewer;
+        self.newBoxPageFocus();
+
+        viewer.addListener('pagefocus', function(page){
+          self.newBoxPageFocus(page);
+        });
+
+        //set height of Box-View
+        if(self.approval_document_page.length > 0){
+          $(".pdf-viewer").height($(".bp-container").height() + 10);
+
+          $(".bp-container").find("button").attr("type", "button");
+        }else{
+          var view = Proceduresync.getViewPort();
+          var total_top = Proceduresync.get_top_height();
+          $(".pdf-viewer").height(view.height - total_top - 20);
+          self.append_new_mark_as_read_area();
+        }
+      });
+
+      preview.show(fileId, fileAccessToken, {
+      // preview.show('93392244621', 'EqFyi1Yq1tD9mxY8F38sxDfp73pFd7FP', {
+        container: '.pdf-viewer',
+        showDownload: true
+      });
+
+      // switch to iframe if js preview hasn't been displayed
+      var switchPreviewInterval = setInterval(function(){
+        checkAndSwitchToIframePreview();
+      }, 1000);
+
+      function checkAndSwitchToIframePreview(){
+        if($(".bp-progress-bar").length == 0){
+          clearInterval(switchPreviewInterval);
+          return;
+        }
+
+        var currentP = parseFloat($(".bp-progress-bar").attr("style").replace("width: ", ""));
+        var oldP = $(".bp-progress-bar-container").data("currentP") || -1;
+
+        if(currentP == 100){
+          clearInterval(switchPreviewInterval);
+          return;
+        }else if(oldP == -1 || currentP > oldP){
+          $(".bp-progress-bar-container").data("currentP", currentP);
+        }else {
+          var tryNum = $(".bp-progress-bar-container").data("tryNum") || 0;
+
+          if(tryNum == 20){
+            self.init_new_box_view_for_ie8(parent_div);
+            parent_div.find(".pdf-viewer-ie8").show();
+            clearInterval(switchPreviewInterval);
+          }else{
+            $(".bp-progress-bar-container").data("tryNum", tryNum + 1);
+          }
+        }
+      }
+
+    }catch(e){
+      
+    }
+  },
+
+  /**
+  * Init new box view for document
+  **/
+  init_new_box_view_for_ie8: function(parent_div){
+    var self = this;
+
+    var pdf_view = parent_div.find(".pdf-viewer-ie8");
+    if(pdf_view.length == 0){
+      return;
+    }
+
+    parent_div.find(".pdf-viewer").remove();
+    self.append_new_mark_as_read_area();
+    $("#mark-as-read-area").css("display", "block");
+
+    //set height of Box-View
+    var view = Proceduresync.getViewPort();
+    var total_top = Proceduresync.get_top_height();
+    $(".pdf-viewer-ie8").height(view.height - total_top - 20);
+
+    // self.newBoxPageFocus();
+  },
+
+  /**
   * Append mark as read area at the bottom of crocodoc-doc
   **/
   append_mark_as_read_area: function(){
@@ -688,6 +806,66 @@ var Document = {
         Proceduresync.hide_loading();
       });
     });
+  },
+
+  /**
+  * [new box] Append mark as read area at the bottom of previewer
+  **/
+  append_new_mark_as_read_area: function(){
+    var btn = $("#mark-as-read-area");
+
+    if($(".crocodoc-viewer-logo").length > 0){
+      btn.insertBefore($(".crocodoc-viewer-logo"));
+    }else{
+      btn.insertAfter($(".pdf-panel"));
+    }
+
+    $("#mark-as-read-area").click(function(e){
+      e.preventDefault();
+
+      var success_url = $(this).attr("data-success-url");
+      Proceduresync.show_loading();
+
+      $.ajax($(this).attr("data-action-url"), {
+        type: 'POST',
+        data: {}
+      }).done(function(ev){
+        if(ev.success){
+          $(this).remove();
+
+          AlertMessage.show("success", ev.message);
+          
+          Proceduresync.redirect_to(success_url);
+        }else{
+          AlertMessage.show("danger", ev.message);
+        }
+        
+        Proceduresync.hide_loading();
+      });
+    });
+  },
+
+  /**
+  * [new box] page focus
+  **/
+  newBoxPageFocus: function(page){
+    if($("#mark-as-read-area").length == 0){
+      return;
+    }
+
+    var totalPage = $(".bp-doc-total-pages").length > 0 ? parseInt($(".bp-doc-total-pages").text(), 10) : 
+      parseInt($(".bp-total-pages").text(), 10);
+
+    if(typeof page == "undefined"){
+      page = $(".bp-doc-page-num-input").length > 0 ? parseInt($(".bp-doc-page-num-input").val(), 10) : 
+        parseInt($(".bp-page-num-input").val(), 10);
+    }
+
+    if(totalPage == 1 || page >= totalPage){
+      $("#mark-as-read-area").css("display", "block");
+    }else{
+      $("#mark-as-read-area").css("display", "none");
+    }
   },
 
   initCategorySelect: function(){

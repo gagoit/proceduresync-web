@@ -135,6 +135,7 @@ var Dashboard = {
         if(currentPage == 1){
           self.auto_restructure_dashboard();
         }
+        div.closest(".table-responsive").find(".loading-wrapper").hide();
       }else{
         div.closest(".table-responsive").find(".loading-wrapper").remove();
         if(ev.message){

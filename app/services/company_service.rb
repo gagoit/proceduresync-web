@@ -276,7 +276,7 @@ class CompanyService < BaseService
         # Update UserDocument relationship for syncing
         next if user_ids_in_to_section.blank? || !accountable_for_users_changed || doc.is_private?
 
-        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, [to_section_id], {user_ids_in_paths: user_ids_in_to_section})
+        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, [to_section_id], {user_ids_in_paths: user_ids_in_to_section, new_paths: [to_section_id]})
       end
     end
 

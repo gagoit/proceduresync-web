@@ -114,6 +114,12 @@
   .crocodoc-doc{
     padding-bottom: 35px;
   }
+
+  .bp-container {
+    .bp-custom-logo, .bp-default-logo {
+      display: none;
+    }
+  }
 }
 
 #document_view_page {

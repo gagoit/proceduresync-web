@@ -269,9 +269,14 @@ class NotificationService < BaseService
       return
     end
 
-    alert = I18n.t("user.has_new_doc")
-
-    payload = {action_type: ACTION_TYPES[:syn_docs], type: "document_is_created"}
+    if doc.is_private
+      alert = ""
+      payload = {action_type: ACTION_TYPES[:document_has_changed_status], 
+        document_ids: [doc.id.to_s], type: "document_has_changed_status"}
+    else
+      alert = I18n.t("user.has_new_doc")
+      payload = {action_type: ACTION_TYPES[:syn_docs], type: "document_is_created"}
+    end
 
     user_ids ||= doc.available_for_user_ids
 
@@ -299,13 +304,13 @@ class NotificationService < BaseService
   ##
   # Notification when a doc is invalid/expiry
   ##
-  def self.documents_are_invalid(docs)
+  def self.documents_are_invalid(doc_ids)
     alert = ""
+    docs = (doc_ids.first.present? && doc_ids.first.is_a?(Document)) ? doc_ids : Document.where(:id.in => doc_ids)
+    user_ids = []
 
     payload = {action_type: ACTION_TYPES[:delete_doc], 
       document_ids: docs.pluck(:id).map { |e| e.to_s }, type: "documents_are_invalid"}
-
-    user_ids = []
 
     docs.each do |doc|
       if company = doc.company
@@ -431,10 +436,12 @@ class NotificationService < BaseService
   ##
   # Notification when user has been change the company path
   ##
-  def self.users_has_changed_company_path(users)
+  def self.users_has_changed_company_path(user_ids)
     alert = I18n.t("user.has_changed_company_path")
 
     payload = {action_type: ACTION_TYPES[:users_has_changed_company_path], type: "users_has_changed_company_path"}
+
+    users = (user_ids.first.present? && user_ids.first.is_a?(User)) ? user_ids : User.where(:id.in => user_ids)
 
     prepare_notification_using_tags(users, alert, payload)
   end

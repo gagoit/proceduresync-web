@@ -451,5 +451,23 @@ RailsAdmin.config do |config|
         field :file
       end
     end
+
+    config.model AppError do
+
+      list do
+        sort_by :updated_at, :desc
+        [:company, :type, :message, :status, :note, :created_at, :updated_at].each{|f| field f}
+      end
+
+      edit do
+        field :status, :enum do
+          enum do
+            AppError::STATUSES.values.map { |e| [e.to_s.titleize, e] }
+          end
+        end
+
+        field :note
+      end
+    end
   end
 end

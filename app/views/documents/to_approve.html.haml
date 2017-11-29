@@ -1,4 +1,6 @@
-.page-content{id: "document_approval_page"}
+- in_new_box = @current_version && !!@current_version.in_new_box
+
+.page-content#document_approval_page{"data-new-box" => in_new_box.to_s}
   .page-subheading.page-subheading-md
     %ol.breadcrumb
       %li
@@ -17,15 +19,16 @@
           - if @view_url
             .panel.panel-default
               .panel-heading
-                %h4.panel-title-doc
-                  %a.pull-right.help-icon.left-5#zoom-in-btn{:href => "", "title" => "Zoom In", "data-placement" => "bottom", "data-toggle" => "tooltip"}
-                    %i.fa.fa-lg.fa-search-plus
+                - unless in_new_box
+                  %h4.panel-title-doc
+                    %a.pull-right.help-icon.left-5#zoom-in-btn{:href => "", "title" => "Zoom In", "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                      %i.fa.fa-lg.fa-search-plus
 
-                  %a.pull-right.help-icon.left-5#zoom-out-btn{:href => "", "title" => "Zoom Out", "data-placement" => "bottom", "data-toggle" => "tooltip"}
-                    %i.fa.fa-lg.fa-search-minus
+                    %a.pull-right.help-icon.left-5#zoom-out-btn{:href => "", "title" => "Zoom Out", "data-placement" => "bottom", "data-toggle" => "tooltip"}
+                      %i.fa.fa-lg.fa-search-minus
                     
               .panel-body
-                = render "documents/box_view", view_url: @view_url, assets_url: @assets_url
+                = render "documents/box_view", view_url: @view_url, assets_url: @assets_url, doc_box_id: @current_version.try(:box_view_id), file_access_token: @file_access_token, in_new_box: in_new_box
           - else
             .panel.panel-default
               .panel-body

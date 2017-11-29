@@ -37,6 +37,7 @@ class VersionsController < ApplicationController
 
     if @version.box_view_id
       @view_url, @assets_url = @version.get_box_url
+      @file_access_token = @version.in_new_box ? NewBox::GetFileToken.call(@version.box_view_id) : nil
     end
 
     @read_doc = current_user.read_doc?(@document)

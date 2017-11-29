@@ -106,6 +106,7 @@ class DocumentsController < ApplicationController
       @current_version = @document.current_version
       if @current_version && @current_version.box_view_id
         @view_url, @assets_url = @current_version.get_box_url
+        @file_access_token = NewBox::GetFileToken.call(@current_version.box_view_id)
       end
     else
       raise CanCan::AccessDenied
@@ -141,7 +142,7 @@ class DocumentsController < ApplicationController
     @document.created_by_id = current_user.id
     @version = @document.versions.new({ version: @document.curr_version, file: params[:version][:file], 
       user_id: current_user.id, file_url: params[:version][:file_url], file_name: params[:version][:file_name], 
-      file_size: params[:version][:file_size].to_f, need_validate_required_fields: true})
+      file_size: params[:version][:file_size].to_f, need_validate_required_fields: true, in_new_box: true})
 
     if @document.valid? && @version.valid?
       @document.save
@@ -200,7 +201,7 @@ class DocumentsController < ApplicationController
         @message[:version_changed] = true
 
         @version = @document.versions.new({version: params[:document][:curr_version], 
-          need_validate_required_fields: true, document_correction: params[:document][:document_correction]})
+          need_validate_required_fields: true, document_correction: params[:document][:document_correction], in_new_box: true})
 
         #@version.file = params[:version][:file] unless params[:version][:file].blank?
         @version.file_url = params[:version][:file_url] 
@@ -292,7 +293,7 @@ class DocumentsController < ApplicationController
       new_ver = (last_version.version.to_i + 1).to_s      
     end
 
-    @version = @document.versions.new({version: new_ver, user_id: current_user.id})
+    @version = @document.versions.new({version: new_ver, user_id: current_user.id, in_new_box: true})
     @version.file = params[:version][:file] rescue nil
     @version.file_url = params[:version][:file_url] unless params[:version][:file_url].blank?
     @version.file_name = params[:version][:file_name] unless params[:version][:file_name].blank?

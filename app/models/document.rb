@@ -607,7 +607,7 @@ class Document
 
       invalid_docs.update_all(active: false)
 
-      NotificationService.delay(queue: "notification_and_convert_doc").documents_are_invalid(invalid_docs)
+      NotificationService.delay(queue: "notification_and_convert_doc").documents_are_invalid(invalid_doc_ids)
       User.remove_invalid_docs("all", invalid_doc_ids)
     end
   end
@@ -804,10 +804,14 @@ class Document
   end
 
   def self.check_and_download_not_done_documents
-    Document.where(active: true, :'versions.box_status'.ne => "done").each do |doc|
-      if (v_last = doc.versions.first) && v_last.box_status != "done" && v_last.attemps_num_download_converted_file.to_i <= Version::MAX_ATTEMPS_NUM_DOWNLOAD
-        DocumentService.delay(queue: "notification_and_convert_doc").get_converted_document(v_last)
-      end
+    # Document.where(active: true, :'versions.box_status'.ne => "done").each do |doc|
+    #   if (v_last = doc.versions.first) && v_last.box_status != "done" && v_last.attemps_num_download_converted_file.to_i <= Version::MAX_ATTEMPS_NUM_DOWNLOAD
+    #     DocumentService.delay(queue: "notification_and_convert_doc").get_converted_document(v_last)
+    #   end
+    # end
+
+    Version.where(box_status: "done", doc_file: nil, :attemps_num_download_converted_file.lte => Version::MAX_ATTEMPS_NUM_DOWNLOAD).each do |version|
+      DocumentService.delay(queue: "notification_and_convert_doc").get_converted_document(version)
     end
   end
 
@@ -888,6 +892,7 @@ class Document
         doc = Document.get_document(doc)
         next if doc.nil? || doc.is_private
 
+        new_paths = paths - (doc.belongs_to_paths || [])
         new_attrs[:belongs_to_paths] = ((doc.belongs_to_paths || []) + paths).uniq
         doc.attributes = new_attrs
         # doc.save(validate: false)
@@ -902,7 +907,7 @@ class Document
               attrs_changes: doc.changes })
 
         # Update UserDocument relationship for syncing
-        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, doc.belongs_to_paths)
+        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, doc.belongs_to_paths, {new_paths: new_paths})
       end
     when "add_accountability"
       # Document is already accountable and/or Accountable but not approved: Do nothing.
@@ -915,6 +920,7 @@ class Document
         doc = Document.get_document(doc)
         next if doc.nil? || doc.is_private
 
+        new_paths = paths - (doc.belongs_to_paths || [])
         new_attrs[:belongs_to_paths] = ((doc.belongs_to_paths || []) + paths).uniq
         new_attrs[:approved_paths] = ((doc.approved_paths || []) + paths).uniq
 
@@ -929,7 +935,7 @@ class Document
 
         next if user_ids_in_paths.blank?
         # Update UserDocument relationship for syncing
-        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, paths, {user_ids_in_paths: user_ids_in_paths})
+        DocumentService.delay(queue: "update_data").add_accountable_to_paths(company, doc, paths, {user_ids_in_paths: user_ids_in_paths, new_paths: new_paths})
       end
     when "remove_accountability"
       # Document is already accountable and/or Accountable but not approved: Remove accountability.
@@ -957,7 +963,7 @@ class Document
         DocumentService.delay(queue: "update_data").remove_accountability_of_paths(company, doc, paths, {user_ids_in_paths: user_ids_in_paths})
       end
     else
-      return {success: false, message: "There are something wrong"}
+      return {success: false, message: "There is something wrong"}
     end
 
     result

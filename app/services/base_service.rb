@@ -118,4 +118,11 @@ class BaseService
   def self.yes_no_text(condition)
     condition ? "Yes" : "No"
   end
+
+  def self.get_first_line_num_in_exception(exception)
+    exception.backtrace.map{ |x|   
+      x.match(/^(.+?):(\d+)(|:in `(.+)')$/); 
+      [$1,$2,$4].join(":") 
+    }.first
+  end
 end
