@@ -1,0 +1,8 @@
+#view_with_js_plugin, #view_with_iframe {
+  display: inline-block;
+  margin-right: 10px;
+
+  &.active {
+    font-weight: bold;
+  }
+}

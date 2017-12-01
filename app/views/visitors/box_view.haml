@@ -1,0 +1,16 @@
+- in_new_box = !!@version.in_new_box
+
+.page-content#test_box_view{"data-new-box" => in_new_box.to_s}
+  .container-fluid-md
+    .row
+      .col-lg-12
+        .panel.panel-default
+          .panel-heading
+            %h4.panel-title-doc
+              = @document.title
+
+            %h5
+              = link_to "View with Box Content Preview", "#", class: "view_type active", id: "view_with_js_plugin"
+              = link_to "View with iframe", "#", class: "view_type", id: "view_with_iframe"
+          .panel-body.text-center.pdf-panel
+            = render "documents/box_view", view_url: @view_url, assets_url: @assets_url, doc_box_id: @version.box_view_id, file_access_token: @file_access_token, in_new_box: in_new_box

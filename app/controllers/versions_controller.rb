@@ -33,7 +33,7 @@ class VersionsController < ApplicationController
   # GET /versions/1.json
   def show
     @version = Version.find(params[:id])
-    raise Mongoid::Errors::DocumentNotFound unless @version.document_id == @document.id
+    raise Mongoid::Errors::DocumentNotFound.new(Version, params[:id]) unless @version.document_id == @document.id
 
     if @version.box_view_id
       @view_url, @assets_url = @version.get_box_url

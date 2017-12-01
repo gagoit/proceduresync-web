@@ -7,6 +7,8 @@
         %meta{:content => content_for?(:description) ? yield(:description) : "Proceduresync", :name => "description"}
         %meta{:name => "viewport", :content => "width=device-width, initial-scale=1, maximum-scale=1"}
 
+        = yield(:box_preview)
+
         = stylesheet_link_tag :'application-0', :media => "all"
         = stylesheet_link_tag :'application-1', :media => "all"
         = stylesheet_link_tag :'application-2', :media => "all"

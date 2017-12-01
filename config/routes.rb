@@ -148,6 +148,8 @@ Proceduresync::Application.routes.draw do
 
   match "static_files" => "home#static_files", via: :get, as: "static_files"
 
+  match "test_box_view" => "visitors#box_view", via: :get, as: "test_box_view"
+
   mount RailsAdmin::Engine => '/admin', :as => 'rails_admin'
 
   #root :to => 'home#index'

@@ -469,5 +469,26 @@ RailsAdmin.config do |config|
         field :note
       end
     end
+
+    config.model TestSite do
+
+      list do
+        sort_by :updated_at, :desc
+        [:type, :name, :code, :url, :info, :created_at, :updated_at].each{|f| field f}
+      end
+
+      edit do
+        field :type, :enum do
+          enum do
+            ["box_view"].map { |e| [e.to_s.titleize, e] }
+          end
+        end
+
+        field :name
+        field :code
+
+        field :info
+      end
+    end
   end
 end
