@@ -14,4 +14,9 @@ module NewBox::Base
     document_folder = NewBox::CreateFolder.call(doc_id.to_s, documents_folder)
     document_folder ||= NewBox::FindFolder.call("documents/#{doc_id}")
   end
+
+  def get_static_files_folder
+    folder = NewBox::CreateFolder.call("static_files")
+    folder ||= NewBox::FindFolder.call("static_files")
+  end
 end
