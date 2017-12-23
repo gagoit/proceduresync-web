@@ -515,9 +515,9 @@ module ApplicationHelper
       ''
     elsif num >= 0 && num <= 5
       'green'
-    elsif num >= 6 && num <= 10
+    elsif num > 5 && num <= 10
       'yellow'
-    elsif num >= 11 && num <= 15
+    elsif num > 10 && num <= 15
       'orange'
     else
       'red'
