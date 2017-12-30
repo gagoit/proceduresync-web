@@ -103,7 +103,7 @@ class CompanyStructure
   #   ) x 100.   
   # This is colour coded. 0-5% Green, 6-10% Yellow, 11-15% Orange and >15% red.
   def unread_percentage
-    users = company.user_companies.active.where(:company_path_ids => /^#{path}/i)
+    users = company.user_companies.active.where(:company_path_ids => /^#{path}/i, :user_id.in => company.user_ids)
 
     unread_docs_count = users.sum(:unread_docs_count)
     accountable_docs_count = users.sum(:accountable_docs_count)
