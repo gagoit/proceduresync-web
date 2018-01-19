@@ -63,6 +63,10 @@
       }
     }
 
+    .fa {
+      padding-right: 2px;
+    }
+
     .section-unread-percentage {
       float: right;
       padding: 2px 3px;
@@ -118,4 +122,11 @@
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
     filter: alpha(opacity=100);
     opacity: 1;
+}
+
+#confirm_clean_sections_modal {
+  .users, .sections {
+    max-height: 300px;
+    overflow: auto;
+  }
 }

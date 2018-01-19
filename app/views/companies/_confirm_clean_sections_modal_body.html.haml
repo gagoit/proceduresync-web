@@ -1,0 +1,30 @@
+#clean_sections_body
+  .container
+    .panel-default
+      - if can_delete
+        .panel-body.panel-e
+          %p Are you sure to delete the following sections from the organisation? This action cannot be undone.
+
+          .sections
+            %ul
+              - sections.each do |section|
+                %li
+                  = section[:name]
+
+        .text-center
+          %button.btn.btn-primary#delete_sections_btn{"data-url" => delete_section_company_path} OK
+          %a.underline-a-modal.text-muted{"data-dismiss" => "modal", :href => "javascript:;"}
+            %h5 Cancel
+
+      - else
+        .panel-body.panel-e
+          %p Only sections with NO active users can be deleted from the organisation. There are users who need their “Section they belong to” changed before you delete the sections:
+
+          .users
+            %ul
+              - users.each do |user|
+                %li
+                  = link_to user.name, edit_user_path(user), {target: "_blank"}
+
+        .text-center
+          %button.btn.btn-primary{"data-dismiss" => "modal"} OK

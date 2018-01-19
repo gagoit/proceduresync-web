@@ -104,12 +104,16 @@ class BaseService
   def self.area_name(company, path_id, all_paths_hash = nil)
     return nil unless path_id.include?(Company::NODE_SEPARATOR)
 
-    all_paths_hash ||= company.all_paths_hash
+    all_paths_hash ||= company.all_paths_hash_include_deleted
 
     return all_paths_hash[path_id] if all_paths_hash[path_id]
 
-    return nil unless (new_path = company.company_structures.where(path: /#{path_id}/).order([:created_at, :desc]).first)
+    new_path = company.company_structures.where(path: /#{path_id}/).order([:created_at, :desc]).first
+    unless new_path
+      new_path = company.company_structures.unscoped.where(path: /#{path_id}/).order([:created_at, :desc]).first
+    end
 
+    return nil unless new_path
     return nil unless (new_name = all_paths_hash[new_path.path])
 
     new_name.split(Company::NODE_SEPARATOR)[0..(path_id.split(Company::NODE_SEPARATOR).length-2)].join(Company::NODE_SEPARATOR) rescue nil

@@ -404,6 +404,10 @@ en:
           title: "To Section"
           placeholder: "Select Section"
 
+    delete_sections:
+      success: "The section(s) has/have been deleted successfully."
+      error: "We're sorry, but something went wrong"
+
   permission:
     add_edit_documents: "Add / Edit Documents"
     view_all_user_read_receipt_reports: "View All User Read Receipt Reports"

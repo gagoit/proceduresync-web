@@ -480,6 +480,10 @@ label.panel-action>h3{
 .modal-body {
   padding-top: 5px;
   padding-bottom: 18px;
+
+  .container {
+    max-width: 100%;
+  }
 }
 
 .spacing-bottom {

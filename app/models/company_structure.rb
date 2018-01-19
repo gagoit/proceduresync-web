@@ -5,6 +5,8 @@ class CompanyStructure
   field :type, type: String
   field :name, type: String
   field :path, type: String
+  field :deleted, type: Boolean, default: false
+  field :deleted_at, type: Time
 
   field :updated_by_id, type: String
 
@@ -14,7 +16,7 @@ class CompanyStructure
   belongs_to :parent, class_name: "CompanyStructure"
 
   validates_presence_of :name, :company_id, :type
-  validates_uniqueness_of :name, scope: :parent_id, :if => :is_not_company_node?
+  # validates_uniqueness_of :name, scope: :parent_id, :if => :is_not_company_node?
 
   validate :type, :inclusion => { :in => Company::STRUCTURES.keys.map { |e| e.to_s }}
   #['company', 'division', 'department', 'group', 'depot', 'panel']
@@ -26,6 +28,8 @@ class CompanyStructure
   index({parent_id: 1})
   index({company_id: 1})
   index({path: 1, company_id: 1})
+
+  default_scope ->{where(:deleted.ne => true)}
 
   Company::STRUCTURES.keys.each do |e|
     scope e, -> {where(type: e.to_s)}
@@ -47,11 +51,20 @@ class CompanyStructure
       child_type = Company::STRUCTURES[parent_type.to_sym][:child] rescue nil
       self.errors.add(:type, "is wrong")  unless (child_type && child_type == type)
     end
+
+    if is_not_company_node? && deleted.blank? && name_changed?
+      existed = company.company_structures.where(parent_id: parent_id, name: name).exists?
+      self.errors.add(:name, "is existed") if existed
+    end
   end
 
   after_save do
     if name_changed? || type_changed? || path_changed?
       Rails.cache.delete("/company/#{company.id}-#{company.path_updated_at}/company_paths")
+      Rails.cache.delete("/company/#{company.id}-#{company.path_updated_at}/all_paths")
+      Rails.cache.delete("/company/#{company.id}-#{company.path_updated_at}/all_paths_hash")
+      Rails.cache.delete("/company/#{company.id}-#{company.path_updated_at}/all_paths_include_deleted")
+      Rails.cache.delete("/company/#{company.id}-#{company.path_updated_at}/all_paths_hash_include_deleted")
       
       company.path_updated_at = self.updated_at
 

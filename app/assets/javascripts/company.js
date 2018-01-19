@@ -17,6 +17,8 @@ var Company = {
 
     this.invoices_panel = $("#invoices_panel");
     this.edit_company_page = $("#company_info_page");
+
+    this.confirm_clean_sections_modal = $("#confirm_clean_sections_modal");
     
     this.init_events();
   },
@@ -202,11 +204,13 @@ var Company = {
     table.delegate("td span", "mouseover", function(){
       $(this).has("h5").removeClass("text-muted").addClass("text-nomal").find("h5").addClass("semi-bold");
       $(this).find("i.fa-pencil-square-o").removeClass("hidden");
+      $(this).find("i.fa-trash-o").removeClass("hidden");
     });
 
     table.delegate("td span", "mouseout", function(){
       $(this).has("h5").removeClass("text-nomal").addClass("text-muted").find("h5").removeClass("semi-bold");
       $(this).find("i.fa-pencil-square-o").addClass("hidden");
+      $(this).find("i.fa-trash-o").addClass("hidden");
     });
 
     /** Load child nodes **/
@@ -239,6 +243,19 @@ var Company = {
       self.edit_organisation_modal.find("#type").val(type);
 
       self.edit_organisation_modal.modal();
+
+      return false;
+    });
+
+    table.delegate("td span i.fa-trash-o", "click", function(e){
+      var span = $(this).closest("span");
+      var id = span.attr("data-uid");
+      var type = span.closest("td").attr("data-node-type");
+
+      self.confirm_clean_sections_modal.data("sectionId", id);
+      self.confirm_clean_sections_modal.data("sectionType", type);
+
+      CompanySection.showDeleteModal(self.confirm_clean_sections_modal);
 
       return false;
     });
@@ -337,7 +354,7 @@ var Company = {
     }).done(function(ev){
       if(ev.success == true){
         var html = '<span class="text-muted" data-uid=' + ev.id + ' }>'
-                      + '<h5><a class="edit-name">' + ev.name + '</a><i class="fa fa-pencil-square-o hidden"></i></h5></span>';
+                      + '<h5><a class="edit-name">' + ev.name + '</a><i class="fa fa-pencil-square-o hidden"></i><i class="fa fa-trash-o hidden"></i></h5></span>';
 
         $(html).insertBefore(current_node.find(".add-org-node"));
 

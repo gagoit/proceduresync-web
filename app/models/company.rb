@@ -507,6 +507,96 @@ class Company
   end
 
   ##
+  # [
+  #   [
+  #     {name: "company name", id: comp_node_id}, {name: "devision name", id: devision_node_id} .. 
+  #   ],
+  #   []
+  # ]
+  ##
+  def all_paths_include_deleted
+    Rails.cache.fetch("/company/#{id}-#{path_updated_at}/all_paths_include_deleted", :expires_in => 12.hours) do
+      result = []
+      com_path = [{name: self.name, id: comp_node.id.to_s}]
+
+      comp_node.childs.unscoped.each do |div|
+        div_path = com_path.dup
+
+        div_path << {name: div.name, id: div.id.to_s}
+
+        if div.childs.unscoped.length == 0
+          result << div_path
+        else
+          div.childs.unscoped.each do |depart|
+            depart_path = div_path.dup
+
+            depart_path << {name: depart.name, id: depart.id.to_s}
+
+            if depart.childs.unscoped.length == 0
+              result << depart_path
+            else
+              depart.childs.unscoped.each do |group|
+                group_path = depart_path.dup
+
+                group_path << {name: group.name, id: group.id.to_s}
+
+                if group.childs.unscoped.length == 0
+                  result << group_path
+                else
+                  group.childs.unscoped.each do |depot|
+                    depot_path = group_path.dup
+
+                    depot_path << {name: depot.name, id: depot.id.to_s}
+
+                    if depot.childs.unscoped.length == 0
+                      result << depot_path
+                    else
+                      depot.childs.unscoped.each do |panel|
+                        panel_path = depot_path.dup
+
+                        panel_path << {name: panel.name, id: panel.id.to_s}
+
+                        result << panel_path
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+
+      result
+    end
+  end
+
+  #{
+  #    path_id => path_name
+  # }
+  # "comp_node_id > devision_node_id > 54b4753c5043311201330200 > 54b475495043311201360200 > 54b4754f5043311201380200" => "Standard > division 3 > af fsrer er e > fsdf er we rwe > cvvx vc x"
+  def all_paths_hash_include_deleted
+    Rails.cache.fetch("/company/#{id}-#{path_updated_at}/all_paths_hash_include_deleted", :expires_in => 12.hours) do
+      result = {}
+      all_paths_include_deleted.each do |path|
+        path_name = []
+        path_id = []
+
+        path.each do |e|
+          path_name << e[:name]
+          path_id << e[:id]
+        end
+
+        name_without_comp = path_name.join(Company::NODE_SEPARATOR).gsub("#{name}#{Company::NODE_SEPARATOR}", "")
+
+        result[path_id.join(Company::NODE_SEPARATOR)] = name_without_comp
+      end
+
+      result
+    end
+  end
+
+  ##
   # Get all paths of organisation for Add/Edit User form
   # @return: Array: [[name, id], [name, id]]
   ##

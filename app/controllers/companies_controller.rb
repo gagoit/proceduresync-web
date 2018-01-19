@@ -323,6 +323,46 @@ class CompaniesController < ApplicationController
     }
   end
 
+
+  def load_delete_section_modal
+    node = @company.company_structures.where(type: params[:node_type]).find(params[:node_id])
+    node_reference = Companies::GetReferenceInfoOfSection.call(@company, node.path)
+    can_delete = node_reference[:active_users_count] == 0
+
+    sections = []
+    @company.company_structures.where(path: /#{node.path}/).order([:path, :asc]).each do |n|
+      if n.child_ids.length == 0
+        sections << {
+          id: n.id,
+          name: @company.all_paths_hash[n.path],
+          path: n.path
+        }
+      end
+    end
+
+    render json: {
+      success: true,
+      modal_body_html: render_to_string(
+        partial: "confirm_clean_sections_modal_body", 
+        locals: {
+          can_delete: can_delete,
+          users: node_reference[:active_users].map { |e| e.user },
+          sections: sections
+        },
+        formats: [:html],
+        locale: [:en],
+        handlers: [:haml]
+      )
+    }
+  end
+
+  def delete_section
+    node = @company.company_structures.where(type: params[:node_type]).find(params[:node_id])
+    result = Companies::DeleteSections.call current_user, @company, node.id, node.type
+    
+    render json: result
+  end
+
   protected
 
   def company_params

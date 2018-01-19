@@ -89,6 +89,9 @@ Proceduresync::Application.routes.draw do
       put :replicate_accountable_documents, defaults: {format: :json}
 
       get :compliance
+
+      get :load_delete_section_modal, defaults: {format: :json}
+      post :delete_section, defaults: {format: :json}
     end
   end
 

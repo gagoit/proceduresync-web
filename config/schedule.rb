@@ -16,12 +16,16 @@
 # Learn more: http://github.com/javan/whenever
 
 every 1.day, :at => '0:00 am' do
-  runner "Document.check_and_download_not_done_documents; Company.check_approver; Company.check_trial_status"
+  runner "Company.check_approver; Company.check_trial_status"
 end
 
 #Each 5 minutes
 every "*/5 * * * *" do
   runner "Document.check_effective_documents; Document.check_invalid_documents;"
+end
+
+every 2.minutes do
+  runner "Document.check_and_download_not_done_documents;"
 end
 
 every 1.hours do

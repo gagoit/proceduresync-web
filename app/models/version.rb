@@ -36,7 +36,7 @@ class Version
   field :thumbnail_url, type: String #URL to thumbnail
 
   has_mongoid_attached_file :image, styles: { thumb: ["70x100#", :jpg] },
-                                    convert_options: {all: ["-unsharp 0.3x0.3+5+0", "-quality 90%", "-auto-orient"]},
+                                    convert_options: {all: ["-unsharp 0.3x0.3+5+0", "-quality 90%", "-auto-orient", "-background white", "-flatten"]},
                                     processors: [:thumbnail] ,
                                     storage: Rails.env.production? ? :s3 : :filesystem,
                                     s3_permissions: :public_read,

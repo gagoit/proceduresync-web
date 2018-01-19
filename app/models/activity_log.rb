@@ -24,6 +24,7 @@ class ActivityLog
     updated_company: "updated_company",
     created_organisation_structure: "created_organisation_structure",
     updated_organisation_structure: "updated_organisation_structure",
+    deleted_organisation_structure: "deleted_organisation_structure",
     created_permission: "created_permission",
     updated_permission: "updated_permission",
     updated_report: "updated_report"
@@ -40,7 +41,8 @@ class ActivityLog
 
   COMPANY_LOG_TYPES = [
     "updated_company", "created_organisation_structure", "updated_organisation_structure",
-        "created_permission", "updated_permission", "updated_report"
+    "deleted_organisation_structure",
+    "created_permission", "updated_permission", "updated_report"
   ]
 
   field :action, type: String

@@ -59,6 +59,10 @@ class LogService < BaseService
         end
         i_hash[:perm_name] = perms.join(", ")
       end
+
+      if act.action == ActivityLog::ACTIONS[:deleted_organisation_structure]
+        i_hash[:nodes] = act.attrs_changes[:paths_name].join(", ")
+      end
     end
 
     return i_hash, add_text
@@ -208,7 +212,7 @@ class LogService < BaseService
   ##
   def self.format_changed_attributes(company, activity, i18n_scope)
     add_text = []
-    comp_all_paths = company.all_paths_hash #{id => name}
+    comp_all_paths = company.all_paths_hash_include_deleted #{id => name}
     permissions = company.permissions.pluck(:id, :name, :is_custom, :for_user_name, :for_user_id)
     permissions_hash = {}
     permissions.each do |perm|
@@ -227,7 +231,7 @@ class LogService < BaseService
     except_fields = ["_keywords", "updated_at", "need_validate_required_fields", "updated_by_id",
       "utf8", "authenticity_token", "document", "format",
       "action", "controller", "id", "approved", "category_id", "need_approval", "approved_by_ids",
-      "read_user_ids", "effective", "belongs_to_paths", "not_restrict_viewing"]
+      "read_user_ids", "effective", "belongs_to_paths", "not_restrict_viewing", "curr_version_text_size"]
 
     txt = "<ul>"
 
@@ -318,7 +322,7 @@ class LogService < BaseService
   # field :approved_paths, type: Array, default: []
   def self.document_approval_logs(user, company, document, page = 1, per_page = PER_PAGE)
     i18n_scope = [:logs, :approval_log]
-    comp_all_paths = company.all_paths_hash
+    comp_all_paths = company.all_paths_hash_include_deleted
 
     approver_docs = document.approver_documents.includes(:user).order([:updated_at, :desc]).page(page).per(per_page)
 

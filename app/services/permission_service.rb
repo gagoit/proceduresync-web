@@ -24,6 +24,9 @@ class PermissionService < BaseService
     load_childs_of_org_node: :compliance,
     preview_company_structure: :organisation_structure,
     replicate_accountable_documents: :organisation_structure,
+    load_delete_section_modal: :organisation_structure,
+    delete_section: :organisation_structure,
+
     compliance: :compliance,
 
     create_category: :create,
@@ -318,7 +321,7 @@ class PermissionService < BaseService
       add_edit_document_control_standard_user: ActivityLog::USER_LOG_TYPES,
       is_approval_user: ActivityLog::DOC_LOG_TYPES,
       can_make_document_restricted: ActivityLog::DOC_LOG_TYPES,
-      can_edit_organisation_structure: ["created_organisation_structure", "updated_organisation_structure"]
+      can_edit_organisation_structure: ["created_organisation_structure", "updated_organisation_structure", "deleted_organisation_structure"]
     }
 
     rules.each do |key, value|
@@ -462,5 +465,15 @@ class PermissionService < BaseService
 
     u_comp = current_user.user_company(company, true)
     u_comp["user_type"] == Permission::STANDARD_PERMISSIONS[:company_representative_user][:code] || u_comp["user_type"] == Permission::STANDARD_PERMISSIONS[:admin_user][:code]
+  end
+
+  ##
+  #
+  ##
+  def self.can_delete_section(company, current_user)
+    return true if current_user.admin? || current_user.super_help_desk_user?
+
+    u_comp = current_user.user_company(company, true)
+    u_comp["user_type"] == Permission::STANDARD_PERMISSIONS[:company_representative_user][:code]
   end
 end
